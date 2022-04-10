@@ -39,6 +39,9 @@
     <ClCompile Include="CameraClass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="TextureClass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SystemClass.h">
@@ -62,13 +65,19 @@
     <ClInclude Include="CameraClass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="TextureClass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="pch.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="data\shaders\texture.vs">
+    <None Include="data\shaders\TextureVS.hlsl">
       <Filter>Source Files</Filter>
     </None>
-    <None Include="data\shaders\texture.ps" />
-    <None Include="data\shaders\color.ps" />
-    <None Include="data\shaders\color.vs" />
+    <None Include="data\shaders\TexturePS.hlsl" />
+    <None Include="data\shaders\ColorPS.hlsl" />
+    <None Include="data\shaders\ColorVS.hlsl" />
   </ItemGroup>
 </Project>

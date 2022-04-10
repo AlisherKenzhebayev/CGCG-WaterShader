@@ -4,6 +4,8 @@
 #include <d3d11.h>
 #include <DirectXMath.h>
 
+#include "textureclass.h"
+
 class ModelClass
 {
 private:

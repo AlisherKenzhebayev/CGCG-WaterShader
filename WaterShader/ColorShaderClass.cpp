@@ -22,8 +22,8 @@ bool ColorShaderClass::Initialize(ID3D11Device * device, HWND hwnd)
 {
 	bool result;
 
-	WCHAR vs[] = L"./data/shaders/color.vs";
-	WCHAR ps[] = L"./data/shaders/color.ps";
+	WCHAR vs[] = L"./data/shaders/ColorVS.hlsl";
+	WCHAR ps[] = L"./data/shaders/ColorPS.hlsl";
 	result = InitializeShader(device, hwnd, vs, ps); 
 	if (!result)
 	{
