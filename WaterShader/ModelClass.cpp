@@ -16,12 +16,12 @@ ModelClass::~ModelClass()
 {
 }
 
-bool ModelClass::Initialize(ID3D11Device * device, WCHAR* fileNameTexture)
+bool ModelClass::Initialize(ID3D11Device * device, WCHAR* fileNameModel, WCHAR* fileNameTexture)
 {
 	bool result;
 
 	// Initialize the vertex and index buffer that hold the geometry for the triangle.
-	result = InitializeBuffers(device);
+	result = InitializeBuffers(device, fileNameModel);
 	if (!result)
 	{
 		return false;
@@ -63,7 +63,7 @@ ID3D11ShaderResourceView* ModelClass::GetTexture()
 }
 
 
-bool ModelClass::InitializeBuffers(ID3D11Device* device)
+bool ModelClass::InitializeBuffers(ID3D11Device* device, WCHAR* fileNameModel)
 {
 	VertexType* vertices;
 	unsigned long* indices;
@@ -89,6 +89,11 @@ bool ModelClass::InitializeBuffers(ID3D11Device* device)
 		return false;
 	}
 	
+	/*Assimp::Importer importer;
+	auto model = importer.ReadFile((CHAR*)fileNameModel,
+		aiProcess_Triangulate 
+		| aiProcess_JoinIdenticalVertices);*/
+
 	vertices[0].position = DirectX::XMFLOAT3(-1.0f, -1.0f, 0.0f);  // Bottom left.
 	vertices[0].textureUV = DirectX::XMFLOAT2(0.0f, 1.0f);
 
@@ -156,7 +161,6 @@ bool ModelClass::InitializeBuffers(ID3D11Device* device)
 bool ModelClass::LoadTexture(ID3D11Device* device, WCHAR* filename)
 {
 	bool result;
-
 
 	// Create the texture object.
 	m_Texture = new TextureClass;

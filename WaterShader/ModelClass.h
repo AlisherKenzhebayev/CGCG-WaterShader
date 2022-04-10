@@ -6,6 +6,10 @@
 
 #include "textureclass.h"
 
+#include "assimp/Importer.hpp"
+#include "assimp/scene.h"
+#include "assimp/postprocess.h"
+
 class ModelClass
 {
 private:
@@ -20,7 +24,7 @@ public:
 	ModelClass(const ModelClass&);
 	~ModelClass();
 
-	bool Initialize(ID3D11Device*, WCHAR*);
+	bool Initialize(ID3D11Device*, WCHAR*, WCHAR*);
 	void Shutdown();
 	void Render(ID3D11DeviceContext*);
 
@@ -29,7 +33,7 @@ public:
 	ID3D11ShaderResourceView* GetTexture();
 
 private:
-	bool InitializeBuffers(ID3D11Device*);
+	bool InitializeBuffers(ID3D11Device*, WCHAR*);
 	void ShutdownBuffers();
 	void RenderBuffers(ID3D11DeviceContext*);
 

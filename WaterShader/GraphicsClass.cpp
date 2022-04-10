@@ -28,7 +28,8 @@ GraphicsClass::~GraphicsClass()
 bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 {
 	bool result;
-	WCHAR* filename = (WCHAR*) L"./data/textures/sample.dds";
+	WCHAR* textureFilename = (WCHAR*)L"./data/textures/sample.dds";
+	WCHAR* modelFilename = (WCHAR*)L"./data/objects/sample.ply";
 
 	m_D3D = new D3DClass;
 	if (!m_D3D) {
@@ -59,7 +60,7 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	}
 
 	// Initialize the model object.
-	result = m_Model->Initialize(m_D3D->GetDevice(), filename);
+	result = m_Model->Initialize(m_D3D->GetDevice(), modelFilename, textureFilename);
 	if (!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the model object.", L"Error", MB_OK);
