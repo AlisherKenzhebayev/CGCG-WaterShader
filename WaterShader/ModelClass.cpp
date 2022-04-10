@@ -1,7 +1,10 @@
 #include "modelclass.h"
-#include <stdio.h>
-#include <iostream>
-#include <fstream>
+
+#ifdef _DEBUG
+	#include <stdio.h>
+	#include <iostream>
+	#include <fstream>
+#endif
 
 ModelClass::ModelClass()
 {
@@ -97,14 +100,12 @@ bool ModelClass::InitializeBuffers(ID3D11Device* device, std::string fileNameMod
 		| aiProcess_JoinIdenticalVertices);
 	if (model == NULL) 
 	{
+#ifdef _DEBUG
 		std::ofstream fout;
-	
 		fout.open("model-error.txt");
-
-		fout <<  "\nEERR" + (std::string) importer.GetErrorString() + fileNameModel;
-
+		fout << "Model Error " + (std::string) importer.GetErrorString() + " in file " + fileNameModel;
 		fout.close();
-
+#endif
 		return false;
 	}
 
