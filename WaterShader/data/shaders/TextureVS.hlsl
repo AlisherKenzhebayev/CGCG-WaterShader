@@ -16,7 +16,6 @@ struct PixelInputType
 {
     float4 position : SV_POSITION;
     float2 texUV: TEXCOORD0;
-    float2 normalUV : TEXCOORD1;
 };
 
 

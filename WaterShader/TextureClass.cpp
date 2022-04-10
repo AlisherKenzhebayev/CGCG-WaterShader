@@ -20,12 +20,11 @@ bool TextureClass::Initialize(ID3D11Device* device, WCHAR* filename)
 	HRESULT result;
 
 	// Load the texture in.
-	result = DirectX::CreateWICTextureFromFile(device, filename, nullptr, &m_texture);
+	result = DirectX::CreateDDSTextureFromFile(device, filename, nullptr, &m_texture);
 	if (FAILED(result))
 	{
 		return false;
 	}
-
 	return true;
 }
 

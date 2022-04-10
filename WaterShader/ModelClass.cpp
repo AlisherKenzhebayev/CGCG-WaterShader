@@ -4,8 +4,8 @@ ModelClass::ModelClass()
 {
 	m_vertexBuffer = 0;
 	m_indexBuffer = 0;
+	m_Texture = 0;
 }
-
 
 ModelClass::ModelClass(const ModelClass& other)
 {
@@ -16,7 +16,7 @@ ModelClass::~ModelClass()
 {
 }
 
-bool ModelClass::Initialize(ID3D11Device * device)
+bool ModelClass::Initialize(ID3D11Device * device, WCHAR* fileNameTexture)
 {
 	bool result;
 
@@ -27,12 +27,21 @@ bool ModelClass::Initialize(ID3D11Device * device)
 		return false;
 	}
 
+	// Load the model texture
+	result = LoadTexture(device, fileNameTexture);
+	if (!result) 
+	{
+		return false;
+	}
+
 	return true;
 }
 
 void ModelClass::Shutdown()
 {
 	ShutdownBuffers();
+
+	ReleaseTexture();
 
 	return;
 }
@@ -47,6 +56,12 @@ int ModelClass::GetIndexCount()
 {
 	return m_indexCount;
 }
+
+ID3D11ShaderResourceView* ModelClass::GetTexture()
+{
+	return m_Texture->GetTexture();
+}
+
 
 bool ModelClass::InitializeBuffers(ID3D11Device* device)
 {
@@ -75,13 +90,13 @@ bool ModelClass::InitializeBuffers(ID3D11Device* device)
 	}
 	
 	vertices[0].position = DirectX::XMFLOAT3(-1.0f, -1.0f, 0.0f);  // Bottom left.
-	vertices[0].color = DirectX::XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f);
+	vertices[0].textureUV = DirectX::XMFLOAT2(0.0f, 1.0f);
 
 	vertices[1].position = DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f);  // Top middle.
-	vertices[1].color = DirectX::XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f);
+	vertices[1].textureUV = DirectX::XMFLOAT2(0.5f, 0.0f);
 
 	vertices[2].position = DirectX::XMFLOAT3(1.0f, -1.0f, 0.0f);  // Bottom right.
-	vertices[2].color = DirectX::XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f);
+	vertices[2].textureUV = DirectX::XMFLOAT2(1.0f, 1.0f);
 
 	// Load the index array with data.
 	indices[0] = 0;  // Bottom left.
@@ -137,6 +152,42 @@ bool ModelClass::InitializeBuffers(ID3D11Device* device)
 
 	return true;
 }
+
+bool ModelClass::LoadTexture(ID3D11Device* device, WCHAR* filename)
+{
+	bool result;
+
+
+	// Create the texture object.
+	m_Texture = new TextureClass;
+	if (!m_Texture)
+	{
+		return false;
+	}
+
+	// Initialize the texture object.
+	result = m_Texture->Initialize(device, filename);
+	if (!result)
+	{
+		return false;
+	}
+
+	return true;
+}
+
+void ModelClass::ReleaseTexture()
+{
+	// Release the texture object.
+	if (m_Texture)
+	{
+		m_Texture->Shutdown();
+		delete m_Texture;
+		m_Texture = 0;
+	}
+
+	return;
+}
+
 
 void ModelClass::ShutdownBuffers()
 {
