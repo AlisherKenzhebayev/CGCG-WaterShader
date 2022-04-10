@@ -1,4 +1,7 @@
 #include "modelclass.h"
+#include <stdio.h>
+#include <iostream>
+#include <fstream>
 
 ModelClass::ModelClass()
 {
@@ -11,12 +14,11 @@ ModelClass::ModelClass(const ModelClass& other)
 {
 }
 
-
 ModelClass::~ModelClass()
 {
 }
 
-bool ModelClass::Initialize(ID3D11Device * device, WCHAR* fileNameModel, WCHAR* fileNameTexture)
+bool ModelClass::Initialize(ID3D11Device * device, std::string fileNameModel, WCHAR* fileNameTexture)
 {
 	bool result;
 
@@ -63,7 +65,7 @@ ID3D11ShaderResourceView* ModelClass::GetTexture()
 }
 
 
-bool ModelClass::InitializeBuffers(ID3D11Device* device, WCHAR* fileNameModel)
+bool ModelClass::InitializeBuffers(ID3D11Device* device, std::string fileNameModel)
 {
 	VertexType* vertices;
 	unsigned long* indices;
@@ -89,10 +91,22 @@ bool ModelClass::InitializeBuffers(ID3D11Device* device, WCHAR* fileNameModel)
 		return false;
 	}
 	
-	/*Assimp::Importer importer;
-	auto model = importer.ReadFile((CHAR*)fileNameModel,
+	Assimp::Importer importer;
+	const aiScene* model = importer.ReadFile(fileNameModel,
 		aiProcess_Triangulate 
-		| aiProcess_JoinIdenticalVertices);*/
+		| aiProcess_JoinIdenticalVertices);
+	if (model == NULL) 
+	{
+		std::ofstream fout;
+	
+		fout.open("model-error.txt");
+
+		fout <<  "\nEERR" + (std::string) importer.GetErrorString() + fileNameModel;
+
+		fout.close();
+
+		return false;
+	}
 
 	vertices[0].position = DirectX::XMFLOAT3(-1.0f, -1.0f, 0.0f);  // Bottom left.
 	vertices[0].textureUV = DirectX::XMFLOAT2(0.0f, 1.0f);

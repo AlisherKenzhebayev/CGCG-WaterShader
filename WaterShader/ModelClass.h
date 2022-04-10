@@ -24,7 +24,7 @@ public:
 	ModelClass(const ModelClass&);
 	~ModelClass();
 
-	bool Initialize(ID3D11Device*, WCHAR*, WCHAR*);
+	bool Initialize(ID3D11Device*, std::string, WCHAR*);
 	void Shutdown();
 	void Render(ID3D11DeviceContext*);
 
@@ -33,7 +33,7 @@ public:
 	ID3D11ShaderResourceView* GetTexture();
 
 private:
-	bool InitializeBuffers(ID3D11Device*, WCHAR*);
+	bool InitializeBuffers(ID3D11Device*, std::string);
 	void ShutdownBuffers();
 	void RenderBuffers(ID3D11DeviceContext*);
 

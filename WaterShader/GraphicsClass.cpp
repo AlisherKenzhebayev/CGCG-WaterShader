@@ -29,7 +29,7 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 {
 	bool result;
 	WCHAR* textureFilename = (WCHAR*)L"./data/textures/sample.dds";
-	WCHAR* modelFilename = (WCHAR*)L"./data/objects/sample.ply";
+	std::string modelFilename = "./data/objects/untitled.ply";
 
 	m_D3D = new D3DClass;
 	if (!m_D3D) {
