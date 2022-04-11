@@ -1,13 +1,20 @@
 #include "modelclass.h"
-#include <stdio.h>
-#include <iostream>
-#include <fstream>
+
+#ifdef _DEBUG
+	#include <stdio.h>
+	#include <iostream>
+	#include <fstream>
+#endif
+
+//TODO: Probably storing the models[] and exchanging the VBO each time the ith object is requested
 
 ModelClass::ModelClass()
 {
 	m_vertexBuffer = 0;
 	m_indexBuffer = 0;
 	m_Texture = 0;
+	m_Model = 0;
+	m_Indices = 0;
 }
 
 ModelClass::ModelClass(const ModelClass& other)
@@ -22,8 +29,15 @@ bool ModelClass::Initialize(ID3D11Device * device, std::string fileNameModel, WC
 {
 	bool result;
 
+	// Load the model mesh 
+	result = LoadModel(fileNameModel);
+	if (!result)
+	{
+		return false;
+	}
+
 	// Initialize the vertex and index buffer that hold the geometry for the triangle.
-	result = InitializeBuffers(device, fileNameModel);
+	result = InitializeBuffers(device);
 	if (!result)
 	{
 		return false;
@@ -45,6 +59,8 @@ void ModelClass::Shutdown()
 
 	ReleaseTexture();
 
+	ReleaseModel();
+
 	return;
 }
 
@@ -65,17 +81,17 @@ ID3D11ShaderResourceView* ModelClass::GetTexture()
 }
 
 
-bool ModelClass::InitializeBuffers(ID3D11Device* device, std::string fileNameModel)
+bool ModelClass::InitializeBuffers(ID3D11Device* device)	// TODO: , int indexToLoad)
 {
 	VertexType* vertices;
 	unsigned long* indices;
 	D3D11_BUFFER_DESC vertexBufferDesc, indexBufferDesc;
 	D3D11_SUBRESOURCE_DATA vertexData, indexData;
 	HRESULT result;
+	int i;
 
-	m_vertexCount = 3;
-
-	m_indexCount = 3;
+	//m_vertexCount = 3;
+	//m_indexCount = 3;
 
 	// Create the vertex array.
 	vertices = new VertexType[m_vertexCount];
@@ -90,37 +106,32 @@ bool ModelClass::InitializeBuffers(ID3D11Device* device, std::string fileNameMod
 	{
 		return false;
 	}
-	
-	Assimp::Importer importer;
-	const aiScene* model = importer.ReadFile(fileNameModel,
-		aiProcess_Triangulate 
-		| aiProcess_JoinIdenticalVertices);
-	if (model == NULL) 
+
+	//vertices[0].position = DirectX::XMFLOAT3(-1.0f, -1.0f, 0.0f);  // Bottom left.
+	//vertices[0].textureUV = DirectX::XMFLOAT2(0.0f, 1.0f);
+
+	//vertices[1].position = DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f);  // Top middle.
+	//vertices[1].textureUV = DirectX::XMFLOAT2(0.5f, 0.0f);
+
+	//vertices[2].position = DirectX::XMFLOAT3(1.0f, -1.0f, 0.0f);  // Bottom right.
+	//vertices[2].textureUV = DirectX::XMFLOAT2(1.0f, 1.0f);
+
+	//// Load the index array with data.
+	//indices[0] = 0;  // Bottom left.
+	//indices[1] = 1;  // Top middle.
+	//indices[2] = 2;  // Bottom right.
+
+	for (i = 0; i < m_vertexCount; i++)
 	{
-		std::ofstream fout;
-	
-		fout.open("model-error.txt");
-
-		fout <<  "\nEERR" + (std::string) importer.GetErrorString() + fileNameModel;
-
-		fout.close();
-
-		return false;
+		vertices[i].position = m_Model[i].position;
+		vertices[i].normal = m_Model[i].normal;
+		vertices[i].textureUV = m_Model[i].textureUV;
 	}
 
-	vertices[0].position = DirectX::XMFLOAT3(-1.0f, -1.0f, 0.0f);  // Bottom left.
-	vertices[0].textureUV = DirectX::XMFLOAT2(0.0f, 1.0f);
-
-	vertices[1].position = DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f);  // Top middle.
-	vertices[1].textureUV = DirectX::XMFLOAT2(0.5f, 0.0f);
-
-	vertices[2].position = DirectX::XMFLOAT3(1.0f, -1.0f, 0.0f);  // Bottom right.
-	vertices[2].textureUV = DirectX::XMFLOAT2(1.0f, 1.0f);
-
-	// Load the index array with data.
-	indices[0] = 0;  // Bottom left.
-	indices[1] = 1;  // Top middle.
-	indices[2] = 2;  // Bottom right.
+	for (i = 0; i < m_indexCount; i++)
+	{
+		indices[i] = m_Indices[i].v0;
+	}
 
 	// Set up the description of the static vertex buffer.
 	vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -193,6 +204,96 @@ bool ModelClass::LoadTexture(ID3D11Device* device, WCHAR* filename)
 	return true;
 }
 
+bool ModelClass::LoadModel(std::string fileNameModel) {
+	int vertexCount = 0;
+	float scale = 5;
+
+	Assimp::Importer importer;
+	const aiScene* model = importer.ReadFile(fileNameModel,
+		aiProcess_Triangulate
+		| aiProcess_JoinIdenticalVertices);
+	if (model == NULL)
+	{
+#ifdef _DEBUG
+		std::ofstream fout;
+		fout.open("model-error.txt");
+		fout << "Model Error " + (std::string)importer.GetErrorString() + " in file " + fileNameModel;
+		fout.close();
+#endif
+		return false;
+	}
+
+	if (model->mNumMeshes == 0) {
+		return false;
+	}
+
+	//for(int i = 0; i < model->mNumMeshes; i++)
+	{
+		int i = 0;
+		const auto mesh = model->mMeshes[i];
+		//TODO: somehow extend to multiple objects support 
+		//TODO: separate indices from vertices
+		m_vertexCount = mesh->mNumVertices;
+		m_indexCount = mesh->mNumFaces*3;
+		
+		m_Model = new ModelType[m_vertexCount];
+		m_Indices = new IndiceType[m_indexCount];
+		
+		if (!m_Model)
+		{
+			return false;
+		}
+
+		for (unsigned int v = 0; v < m_vertexCount; v++)
+		{
+			const auto& vertex = mesh->mVertices[v];
+			const auto& normal = mesh->mNormals[v];
+			const auto& texUV = mesh->mTextureCoords[0][v];
+			m_Model[v] = {
+				{vertex.x * scale, vertex.y * scale, vertex.z * scale},
+				{normal.x, normal.y, normal.z},
+				{texUV.x, texUV.y}
+			};
+		}
+
+		for (unsigned int i = 0; i < mesh->mNumFaces; i++)
+		{
+			const auto& face = mesh->mFaces[i];
+			assert(face.mNumIndices == 3);
+			m_Indices[3 * i] = { face.mIndices[2] };
+			m_Indices[3 * i + 1] = { face.mIndices[1] };
+			m_Indices[3 * i + 2] = { face.mIndices[0] };
+		}
+
+		// Checking the data is being read and transferred
+#ifdef _DEBUG
+		std::ofstream fout;
+		fout.open("model-error.txt");
+		fout << "Model DATA " + std::to_string(m_vertexCount) + " " + std::to_string(mesh->mNumFaces);
+		for (unsigned int v = 0; v < m_vertexCount; v++)
+		{
+			fout << "\n " + std::to_string(m_Model[v].position.x)
+				+ " " + std::to_string(m_Model[v].position.y)
+				+ " " + std::to_string(m_Model[v].position.z);
+			if(mesh->mTextureCoords[0][v].x && mesh->mTextureCoords[0][v].y){
+				fout << " " + std::to_string(mesh->mTextureCoords[0][v].x) + " " + std::to_string(mesh->mTextureCoords[0][v].y);
+			}
+
+		}
+
+		for (unsigned int v = 0; v < m_indexCount; v+=3)
+		{
+			fout << " " + std::to_string(m_Indices[v].v0)
+				+ " " + std::to_string(m_Indices[v + 1].v0)
+				+ " " + std::to_string(m_Indices[v + 2].v0) + "\n";
+		}
+		fout.close();
+#endif
+	}
+
+	return true;
+}
+
 void ModelClass::ReleaseTexture()
 {
 	// Release the texture object.
@@ -206,6 +307,23 @@ void ModelClass::ReleaseTexture()
 	return;
 }
 
+
+void ModelClass::ReleaseModel()
+{
+	if (m_Model)
+	{
+		delete[] m_Model;
+		m_Model = 0;
+	}
+
+	if (m_Indices)
+	{
+		delete[] m_Indices;
+		m_Indices = 0;
+	}
+
+	return;
+}
 
 void ModelClass::ShutdownBuffers()
 {

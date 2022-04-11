@@ -6,7 +6,7 @@ CameraClass::CameraClass()
 	m_positionY = 0.0f;
 	m_positionZ = 0.0f;
 
-	m_rotationX = 0.0f;
+	m_rotationX = 90.0f;
 	m_rotationY = 0.0f;
 	m_rotationZ = 0.0f;
 }
