@@ -29,7 +29,7 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 {
 	bool result;
 	WCHAR* textureFilename = (WCHAR*)L"./data/textures/sample.dds";
-	std::string modelFilename = "./data/objects/untitled.ply";
+	std::string modelFilename = "./data/objects/suzanne.ply";
 
 	m_D3D = new D3DClass;
 	if (!m_D3D) {
@@ -50,7 +50,7 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	}
 
 	// Set the initial position of the camera.
-	m_Camera->SetPosition(0.0f, 0.0f, -5.0f);
+	m_Camera->SetPosition(0.0f, 50.0f, 0.0f);
 
 	// Create the model object.
 	m_Model = new ModelClass;
@@ -150,7 +150,7 @@ bool GraphicsClass::Render()
 	bool result;
 
 	// Clear the buffers to begin the scene.
-	m_D3D->BeginScene(0.5f, 0.5f, 0.5f, 1.0f);
+	m_D3D->BeginScene(0.2f, 0.2f, 0.2f, 1.0f);
 
 	// Generate the view matrix based on the camera's position.
 	m_Camera->Render();
@@ -162,6 +162,8 @@ bool GraphicsClass::Render()
 
 	// Put the model vertex and index buffers on the graphics pipeline to prepare them for drawing.
 	m_Model->Render(m_D3D->GetDeviceContext());
+
+	// TODO: support for multiple models in a scene
 
 	// Render the model using the color shader.
 	result = m_Shader->Render(m_D3D->GetDeviceContext(), m_Model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Model->GetTexture());
