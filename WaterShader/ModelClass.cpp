@@ -206,7 +206,7 @@ bool ModelClass::LoadTexture(ID3D11Device* device, WCHAR* filename)
 
 bool ModelClass::LoadModel(std::string fileNameModel) {
 	int vertexCount = 0;
-	float scale = 5;
+	float scale = 0.05;
 
 	Assimp::Importer importer;
 	const aiScene* model = importer.ReadFile(fileNameModel,

@@ -143,6 +143,9 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
+    <FxCompile>
+      <ShaderModel>5.0</ShaderModel>
+    </FxCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -169,6 +172,7 @@
     <ClCompile Include="ModelClass.cpp" />
     <ClCompile Include="InputClass.cpp" />
     <ClCompile Include="GraphicsClass.cpp" />
+    <ClCompile Include="SineTextureShaderClass.cpp" />
     <ClCompile Include="TextureClass.cpp" />
     <ClCompile Include="SystemClass.cpp" />
     <ClCompile Include="TextureShaderClass.cpp" />
@@ -179,6 +183,7 @@
     <ClInclude Include="D3dclass.h" />
     <ClInclude Include="ColorShaderClass.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="SineTextureShaderClass.h" />
     <ClInclude Include="TextureClass.h" />
     <ClInclude Include="ModelClass.h" />
     <ClInclude Include="GraphicsClass.h" />
@@ -196,6 +201,16 @@
     <ProjectReference Include="..\DirectXTK\DirectXTK_Desktop_2019_Win10.vcxproj">
       <Project>{e0b52ae7-e160-4d32-bf3f-910b785e5a8e}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="data\shaders\SimpleSinPS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">SimpleSinPixelShader</EntryPointName>
+    </FxCompile>
+    <FxCompile Include="data\shaders\SimpleSinVS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">SimpleSinVertexShader</EntryPointName>
+    </FxCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

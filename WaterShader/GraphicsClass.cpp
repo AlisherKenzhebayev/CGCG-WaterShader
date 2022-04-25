@@ -29,7 +29,7 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 {
 	bool result;
 	WCHAR* textureFilename = (WCHAR*)L"./data/textures/sample.dds";
-	std::string modelFilename = "./data/objects/suzanne.ply";
+	std::string modelFilename = "./data/objects/untitled.ply";
 
 	m_D3D = new D3DClass;
 	if (!m_D3D) {
@@ -50,7 +50,7 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	}
 
 	// Set the initial position of the camera.
-	m_Camera->SetPosition(0.0f, 50.0f, 0.0f);
+	m_Camera->SetPosition(0.0f, -150.0f, -5.0f);
 
 	// Create the model object.
 	m_Model = new ModelClass;
@@ -74,8 +74,8 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 		HRESULT status = DirectX::SaveDDSTextureToFile(m_D3D->GetDeviceContext(), res, L"./data/SCREENSHOT.dds");
 	#endif
 
-	// Create the color shader object.
-	m_Shader = new TextureShaderClass;
+	// Create the shader object.
+	m_Shader = new SineTextureShaderClass;
 	if (!m_Shader)
 	{
 		return false;
@@ -132,7 +132,6 @@ bool GraphicsClass::Frame()
 {
 	bool result;
 
-
 	// Render the graphics scene.
 	result = Render();
 	if (!result)
@@ -151,6 +150,8 @@ bool GraphicsClass::Render()
 
 	// Clear the buffers to begin the scene.
 	m_D3D->BeginScene(0.2f, 0.2f, 0.2f, 1.0f);
+
+	//TODO: m_Camera->SetPosition();
 
 	// Generate the view matrix based on the camera's position.
 	m_Camera->Render();
