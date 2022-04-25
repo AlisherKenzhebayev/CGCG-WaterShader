@@ -117,9 +117,9 @@ void PositionClass::MoveBackward(bool keydown)
 	{
 		m_backwardSpeed += m_frameTime * 0.001f;
 
-		if (m_backwardSpeed > (m_frameTime * 0.03f))
+		if (m_backwardSpeed > (m_frameTime * 0.1f))
 		{
-			m_backwardSpeed = m_frameTime * 0.03f;
+			m_backwardSpeed = m_frameTime * 0.1f;
 		}
 	}
 	else

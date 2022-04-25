@@ -3,9 +3,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include "graphicsclass.h"
 
-#include<iostream>
-#include<fstream>
-
 GraphicsClass::GraphicsClass()
 {
 	m_Input = 0;
@@ -64,8 +61,8 @@ bool GraphicsClass::Initialize(HINSTANCE hInstance, HWND hwnd, int screenWidth, 
 
 	// Set the initial position of the camera.
 	cameraX = 0.0f;
-	cameraY = 0.0f;
-	cameraZ = -30.0f;
+	cameraY = 1.0f;
+	cameraZ = -50.0f;
 
 	cameraRotX = 0.0f;
 	cameraRotY = 0.0f;
@@ -234,13 +231,6 @@ bool GraphicsClass::HandleInput(float frameTime)
 
 	// Set the frame time for calculating the updated position.
 	m_Position->SetFrameTime(frameTime);
-
-#ifdef _DEBUG
-	std::ofstream fout;
-	fout.open("graphics-error.txt");
-	fout << "Graphics Error " + std::to_string(frameTime);
-	fout.close();
-#endif
 
 	// Handle the input.
 	keyDown = m_Input->IsLeftPressed();

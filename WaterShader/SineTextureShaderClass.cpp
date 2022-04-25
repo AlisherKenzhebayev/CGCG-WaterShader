@@ -1,4 +1,6 @@
 #include "SineTextureShaderClass.h"
+#include <stdio.h>
+#include <fstream>
 
 SineTextureShaderClass::SineTextureShaderClass()
 {
@@ -353,9 +355,9 @@ bool SineTextureShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceCont
 	dataSPtr = (SineBufferType*)mappedResourceS.pData;
 
 	dataSPtr->commonConst =		DirectX::XMFLOAT4(0.0, 0.5, 1.0, 2.0);
-	dataSPtr->waveHeights =		DirectX::XMFLOAT4(80.0, 100.0, 5.0, 5.0);
-	dataSPtr->waveLengths =		DirectX::XMFLOAT4(20.0, 40.0, 5.0, 2.0);
-	dataSPtr->waveOffset =		DirectX::XMFLOAT4(0.0f, 0.2f, 0.0f, 0.0f);
+	dataSPtr->waveHeights =		DirectX::XMFLOAT4(1.5, 1.5, 1, .5);
+	dataSPtr->waveLengths =		DirectX::XMFLOAT4(3.0, 3.0, 0.5, 0.02);
+	dataSPtr->waveOffset =		DirectX::XMFLOAT4(0.0f, 0.2f, 0.5f, 0.0f);
 	dataSPtr->waveSpeed =		DirectX::XMFLOAT4(0.2, 0.15, 0.4, 0.4);
 	dataSPtr->waveDirx =		DirectX::XMFLOAT4(0.25, 0.0, -0.7, -0.8);
 	dataSPtr->waveDiry =		DirectX::XMFLOAT4(0.0, 0.15, -0.7, 0.1);
@@ -367,7 +369,7 @@ bool SineTextureShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceCont
 	dataSPtr->psCommonConst =	DirectX::XMFLOAT4(0, 0.5, 1, 0.25);
 	dataSPtr->highlightColor =	DirectX::XMFLOAT4(0.8, 0.76, 0.62, 1);
 	dataSPtr->waterColor =		DirectX::XMFLOAT4(0.50, 0.6, 0.7, 1);
-	dataSPtr->time =			DirectX::XMFLOAT2(st.wMinute, sin(st.wMinute));
+	dataSPtr->time =			DirectX::XMFLOAT2(st.wSecond, sin(st.wSecond));
 
 	// Unlock the constant buffer.
 	deviceContext->Unmap(m_sineBuffer, 0);

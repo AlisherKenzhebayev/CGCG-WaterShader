@@ -45,30 +45,45 @@ PixelInputType SimpleSinVertexShader(VertexInputType input)
 {
     PixelInputType output;
     
-    // Change the position vector to be 4 units for proper matrix calculations.
-    input.position.w = 1.0f;
+    float4 frequency = 2 / waveLengths;
     
-    float bracketValue = mul(input.texUV.x, waveDirx);
-    bracketValue += mul(input.texUV.y, waveDiry);
+    // dot(Di * (x, y))
+    float4 bracketValue = mul(waveDirx, input.texUV.x);
+    bracketValue += mul(waveDiry, input.texUV.y);
     
-    bracketValue = mul(bracketValue, 2 / waveLengths);
-    bracketValue += mul(waveSpeed, time);
-
-    float sinValue = sin(bracketValue);
-    float cosValue = cos(bracketValue);
+    // * w
+    bracketValue = mul(bracketValue, frequency);
     
-    input.position.z += 100*sinValue; // TODO: something's wrong, as the sine is 0
+    // + t*Phi
+    float phase = mul(waveSpeed, frequency);
+    bracketValue += mul(time.x, phase);
+    
+    bracketValue += waveOffset;
+    
+    /*
+    // Take fractional component
+    bracketValue.xy = frac(bracketValue);
+    float2 res = frac(bracketValue.zwzw);
+    bracketValue.zw = res.xyxy;
+    
+    bracketValue -= 0.5f;
+    bracketValue *= piVector.w;
+    */
+    
+    float4 sinValue = sin(bracketValue);
+    float4 cosValue = cos(bracketValue);
+    
+    //TODO: vertex displacement
+    //if(input.position.y % 2 == 0)
+    input.position.xyz += input.normal * (dot(sinValue, waveHeights) / 2); // TODO: something's wrong
     
     // Calculate the position of the vertex against the world, view, and projection matrices.
     output.position = mul(input.position, worldMatrix);
     output.position = mul(output.position, viewMatrix);
     output.position = mul(output.position, projectionMatrix);
     
-    //output.position.y += float4(10.0, 15.0, 30.0, 0.0);
-    //TODO: vertex displacement
-    
     //TODO: update normals based on sine eq
-    output.normal = mul(input.normal, (float3x3) worldMatrix);
+    output.normal = frequency.xyz;
     // Normalize the normal vector.
     output.normal = normalize(output.normal);
     

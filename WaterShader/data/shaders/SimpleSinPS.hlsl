@@ -19,8 +19,8 @@ float4 SimpleSinPixelShader(PixelInputType input) : SV_TARGET
     
     // TODO: implement lights, at some point with normal calculation
     
-    //textureColor = float4(0, 1, 0, 1);
-    textureColor = shaderTexture.Sample(SampleType, input.texUV);
+    textureColor = float4(0.12f, 0.4f, 0.7f, 0.6f);
+    //textureColor = shaderTexture.Sample(SampleType, input.texUV);
     
     return textureColor;
 }
