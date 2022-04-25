@@ -16,6 +16,7 @@ public:
 
 	bool Initialize();
 	void Shutdown();
+
 	void Run();
 
 	LRESULT CALLBACK MessageHandler(HWND, UINT, WPARAM, LPARAM);
@@ -30,7 +31,6 @@ private:
 	HINSTANCE m_hinstance;
 	HWND m_hwnd;
 
-	InputClass* m_Input;
 	GraphicsClass* m_Graphics;
 };
 

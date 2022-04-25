@@ -172,10 +172,13 @@
     <ClCompile Include="ModelClass.cpp" />
     <ClCompile Include="InputClass.cpp" />
     <ClCompile Include="GraphicsClass.cpp" />
+    <ClCompile Include="PositionClass.cpp" />
+    <ClCompile Include="PositionClass.h" />
     <ClCompile Include="SineTextureShaderClass.cpp" />
     <ClCompile Include="TextureClass.cpp" />
     <ClCompile Include="SystemClass.cpp" />
     <ClCompile Include="TextureShaderClass.cpp" />
+    <ClCompile Include="TimerClass.cpp" />
     <ClCompile Include="WinMain.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -190,6 +193,7 @@
     <ClInclude Include="InputClass.h" />
     <ClInclude Include="SystemClass.h" />
     <ClInclude Include="TextureShaderClass.h" />
+    <ClInclude Include="TimerClass.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="data\shaders\ColorPS.hlsl" />

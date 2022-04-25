@@ -57,6 +57,8 @@ PixelInputType SimpleSinVertexShader(VertexInputType input)
     float sinValue = sin(bracketValue);
     float cosValue = cos(bracketValue);
     
+    input.position.z += 100*sinValue; // TODO: something's wrong, as the sine is 0
+    
     // Calculate the position of the vertex against the world, view, and projection matrices.
     output.position = mul(input.position, worldMatrix);
     output.position = mul(output.position, viewMatrix);
@@ -64,11 +66,6 @@ PixelInputType SimpleSinVertexShader(VertexInputType input)
     
     //output.position.y += float4(10.0, 15.0, 30.0, 0.0);
     //TODO: vertex displacement
-    
-    if (output.position.y % 2 == 0)
-    {
-        output.position.y += 1000 * sinValue; // TODO: something's wrong, as the sine is 0
-    }
     
     //TODO: update normals based on sine eq
     output.normal = mul(input.normal, (float3x3) worldMatrix);

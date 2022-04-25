@@ -48,6 +48,15 @@
     <ClCompile Include="SineTextureShaderClass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="TimerClass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PositionClass.h">
+      <Filter>Header Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PositionClass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ModelClass.h">
@@ -81,6 +90,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="SineTextureShaderClass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TimerClass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
