@@ -1,6 +1,7 @@
 #include "SineTextureShaderClass.h"
 #include <stdio.h>
 #include <fstream>
+#include <iostream>
 
 SineTextureShaderClass::SineTextureShaderClass()
 {
@@ -193,7 +194,7 @@ bool SineTextureShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, W
 	}
 
 	sineBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-	sineBufferDesc.ByteWidth = sizeof(MatrixBufferType);
+	sineBufferDesc.ByteWidth = sizeof(SineBufferType);
 	sineBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	sineBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	sineBufferDesc.MiscFlags = 0;
@@ -312,6 +313,8 @@ void SineTextureShaderClass::OutputShaderErrorMessage(ID3D10Blob* errorMessage, 
 bool SineTextureShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext, DirectX::XMMATRIX worldMatrix,
 	DirectX::XMMATRIX viewMatrix, DirectX::XMMATRIX projectionMatrix, ID3D11ShaderResourceView* texture)
 {
+	cout << "HERE";
+
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResourceM;
 	D3D11_MAPPED_SUBRESOURCE mappedResourceS;
@@ -341,8 +344,12 @@ bool SineTextureShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceCont
 	// Unlock the constant buffer.
 	deviceContext->Unmap(m_matrixBuffer, 0);
 
-	SYSTEMTIME st;
-	GetSystemTime(&st);
+	// Current time
+	FILETIME ft_now;
+	GetSystemTimeAsFileTime(&ft_now);
+	int ll_now = (LONGLONG)ft_now.dwLowDateTime + ((LONGLONG)(ft_now.dwHighDateTime) << 32LL);
+	float st = (ll_now / 10000) % 86400000LL;
+	st /= 1000.0;
 
 	// Lock the constant buffer so it can be written to.
 	result = deviceContext->Map(m_sineBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResourceS);
@@ -355,12 +362,12 @@ bool SineTextureShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceCont
 	dataSPtr = (SineBufferType*)mappedResourceS.pData;
 
 	dataSPtr->commonConst =		DirectX::XMFLOAT4(0.0, 0.5, 1.0, 2.0);
-	dataSPtr->waveHeights =		DirectX::XMFLOAT4(1.5, 1.5, 1, .5);
-	dataSPtr->waveLengths =		DirectX::XMFLOAT4(3.0, 3.0, 0.5, 0.02);
-	dataSPtr->waveOffset =		DirectX::XMFLOAT4(0.0f, 0.2f, 0.5f, 0.0f);
-	dataSPtr->waveSpeed =		DirectX::XMFLOAT4(0.2, 0.15, 0.4, 0.4);
+	dataSPtr->waveHeights =		DirectX::XMFLOAT4(2.0, 3.5, 0.25, 0.0);
+	dataSPtr->waveLengths =		DirectX::XMFLOAT4(0.1, 0.3, 0.5, 0.5);
+	dataSPtr->waveOffset =		DirectX::XMFLOAT4(-0.5f, 0.2f, 0.45f, 0.0f);
+	dataSPtr->waveSpeed =		DirectX::XMFLOAT4(0.02, 0.015, 0.04, 0.03);
 	dataSPtr->waveDirx =		DirectX::XMFLOAT4(0.25, 0.0, -0.7, -0.8);
-	dataSPtr->waveDiry =		DirectX::XMFLOAT4(0.0, 0.15, -0.7, 0.1);
+	dataSPtr->waveDiry =		DirectX::XMFLOAT4(0.0, 0.45, -0.7, 0.1);
 	dataSPtr->bumpSpeed =		DirectX::XMFLOAT4(0.031, 0.04, -0.03, 0.02);
 	dataSPtr->piVector =		DirectX::XMFLOAT4(4.0, 1.57079632, 3.14159265, 6.28318530);
 	dataSPtr->sin7 =			DirectX::XMFLOAT4(1, -0.16161616, 0.0083333, -0.00019841);
@@ -369,7 +376,7 @@ bool SineTextureShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceCont
 	dataSPtr->psCommonConst =	DirectX::XMFLOAT4(0, 0.5, 1, 0.25);
 	dataSPtr->highlightColor =	DirectX::XMFLOAT4(0.8, 0.76, 0.62, 1);
 	dataSPtr->waterColor =		DirectX::XMFLOAT4(0.50, 0.6, 0.7, 1);
-	dataSPtr->time =			DirectX::XMFLOAT2(st.wSecond, sin(st.wSecond));
+	dataSPtr->time =			DirectX::XMFLOAT4(st, sin(st), st/1000.0, sin(st / 1000.0));
 
 	// Unlock the constant buffer.
 	deviceContext->Unmap(m_sineBuffer, 0);

@@ -16,14 +16,14 @@ cbuffer SineBuffer : register(b1)
     float4 waveDirx; 
     float4 waveDiry; 
     float4 bumpSpeed;
-    float4 piVector; 
+    float4 piVector;
     float4 sin7;
     float4 cos8;
     float4 frcFixup; 
     float4 psCommonConst; 
     float4 highlightColor;
     float4 waterColor; 
-    float2 time;
+    float4 time;
 };
 
 struct VertexInputType
@@ -45,37 +45,41 @@ PixelInputType SimpleSinVertexShader(VertexInputType input)
 {
     PixelInputType output;
     
+    // scale UV with this factor before calculating
+    float scale = 30;
+    // scale time with this factor
+    float tScale = 0.005;
+    
+    // w
     float4 frequency = 2 / waveLengths;
     
     // dot(Di * (x, y))
-    float4 bracketValue = mul(waveDirx, input.texUV.x);
-    bracketValue += mul(waveDiry, input.texUV.y);
+    float4 bracketValue =   mul(waveDirx, input.texUV.x * scale);
+    bracketValue +=         mul(waveDiry, input.texUV.y * scale);
     
-    // * w
+    // *= w
     bracketValue = mul(bracketValue, frequency);
     
-    // + t*Phi
-    float phase = mul(waveSpeed, frequency);
-    bracketValue += mul(time.x, phase);
+    float4 phase = waveSpeed * frequency;
+    float4 shift = phase * (time.z + 1000*time.x) * tScale;
+    bracketValue += shift + waveOffset;
     
-    bracketValue += waveOffset;
+    //// TODO: recalculate sin using Taylor series, as in Isidoro
+    //// Take fractional component
+    //bracketValue.xy = frac(bracketValue);
+    //float2 res = frac(bracketValue.zwzw);
+    //bracketValue.zw = res.xyxy;
     
-    /*
-    // Take fractional component
-    bracketValue.xy = frac(bracketValue);
-    float2 res = frac(bracketValue.zwzw);
-    bracketValue.zw = res.xyxy;
-    
-    bracketValue -= 0.5f;
-    bracketValue *= piVector.w;
-    */
+    //// 0-1 -> -0.5 x 2PI -> -PI, PI
+    //bracketValue -= 0.5f;
+    //bracketValue *= piVector.w;
     
     float4 sinValue = sin(bracketValue);
     float4 cosValue = cos(bracketValue);
     
     //TODO: vertex displacement
     //if(input.position.y % 2 == 0)
-    input.position.xyz += input.normal * (dot(sinValue, waveHeights) / 2); // TODO: something's wrong
+    input.position.xyz += input.normal * dot(sinValue, waveHeights); // TODO: something's wrong
     
     // Calculate the position of the vertex against the world, view, and projection matrices.
     output.position = mul(input.position, worldMatrix);
@@ -83,9 +87,9 @@ PixelInputType SimpleSinVertexShader(VertexInputType input)
     output.position = mul(output.position, projectionMatrix);
     
     //TODO: update normals based on sine eq
-    output.normal = frequency.xyz;
+    output.normal = sinValue.www; //sin(bracketValue.x).xxx;
     // Normalize the normal vector.
-    output.normal = normalize(output.normal);
+    //output.normal = normalize(output.normal);
     
     output.texUV = input.texUV;
     

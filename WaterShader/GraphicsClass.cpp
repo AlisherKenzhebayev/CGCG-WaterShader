@@ -38,7 +38,7 @@ bool GraphicsClass::Initialize(HINSTANCE hInstance, HWND hwnd, int screenWidth, 
 	}
 	m_Input->Initialize(hInstance, hwnd, screenWidth, screenHeight);
 
-	WCHAR* textureFilename = (WCHAR*)L"./data/textures/sample.dds";
+	WCHAR* textureFilename = (WCHAR*)L"./data/textures/water.jpg";
 	std::string modelFilename = "./data/objects/untitled.ply";
 
 	m_D3D = new D3DClass;

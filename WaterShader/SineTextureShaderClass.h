@@ -47,7 +47,7 @@ private:
 		DirectX::XMFLOAT4 psCommonConst;// (0, 0.5, 1, 0.25)
 		DirectX::XMFLOAT4 highlightColor;// (0.8, 0.76, 0.62, 1)
 		DirectX::XMFLOAT4 waterColor;// (0.50, 0.6, 0.7, 1)
-		DirectX::XMFLOAT2 time; // (t, sin(t))
+		DirectX::XMFLOAT4 time; // (t, sin(t), t, sin(t))
 	};
 
 public:
