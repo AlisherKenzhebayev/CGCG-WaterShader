@@ -361,7 +361,7 @@ bool SineTextureShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceCont
 	dataSPtr = (SineBufferType*)mappedResourceS.pData;
 
 	dataSPtr->commonConst =		DirectX::XMFLOAT4(0.0, 0.5, 1.0, 2.0);
-	dataSPtr->waveHeights =		DirectX::XMFLOAT4(5.0, 3.5, 1.5, 1);
+	dataSPtr->waveHeights =		DirectX::XMFLOAT4(1.0, 3.5, 1.5, 1);
 	dataSPtr->waveLengths =		DirectX::XMFLOAT4(10, 3, 5, 4);
 	dataSPtr->waveOffset =		DirectX::XMFLOAT4(-0.5f, 0.2f, 0.45f, 0.0f);
 	dataSPtr->waveSpeed =		DirectX::XMFLOAT4(2.5, 0.75, 1, 1.5);

@@ -77,9 +77,9 @@ PixelInputType SimpleSinVertexShader(VertexInputType input)
     float4 cosValue = cos(bracketValue);
     
     // Starting off the Eq 8.1, mode in additive sines
-    sinValue += 1.0;
-    sinValue /= 2.0;
-    sinValue = pow(sinValue, K);
+    //sinValue += 1.0;
+    //sinValue /= 2.0;
+    //sinValue = pow(sinValue, K);
     
     // Calculating Gerstner waves
     float4 valSteepness = mul(waveHeights, CalcQ(Q, frequency, waveHeights));
