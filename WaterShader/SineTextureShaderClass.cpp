@@ -1,31 +1,35 @@
-#include "TextureShaderClass.h"
+#include "SineTextureShaderClass.h"
+#include <stdio.h>
+#include <fstream>
+#include <iostream>
 
-TextureShaderClass::TextureShaderClass()
+SineTextureShaderClass::SineTextureShaderClass()
 {
 	m_vertexShader = 0;
 	m_pixelShader = 0;
 	m_layout = 0;
 	m_matrixBuffer = 0;
+	m_sineBuffer = 0;
 	m_samplerState = 0;
 }
 
 
-TextureShaderClass::TextureShaderClass(const TextureShaderClass& other)
+SineTextureShaderClass::SineTextureShaderClass(const SineTextureShaderClass& other)
 {
 }
 
 
-TextureShaderClass::~TextureShaderClass()
+SineTextureShaderClass::~SineTextureShaderClass()
 {
 }
 
-bool TextureShaderClass::Initialize(ID3D11Device * device, HWND hwnd)
+bool SineTextureShaderClass::Initialize(ID3D11Device* device, HWND hwnd)
 {
 	bool result;
 
-	WCHAR vs[] = L"./data/shaders/TextureVS.hlsl";
-	WCHAR ps[] = L"./data/shaders/TexturePS.hlsl";
-	result = InitializeShader(device, hwnd, vs, ps); 
+	WCHAR vs[] = L"./data/shaders/SimpleSinVS.hlsl";
+	WCHAR ps[] = L"./data/shaders/SimpleSinPS.hlsl";
+	result = InitializeShader(device, hwnd, vs, ps);
 	if (!result)
 	{
 		return false;
@@ -34,7 +38,7 @@ bool TextureShaderClass::Initialize(ID3D11Device * device, HWND hwnd)
 	return true;
 }
 
-void TextureShaderClass::Shutdown()
+void SineTextureShaderClass::Shutdown()
 {
 	// Shutdown the vertex and pixel shaders as well as the related objects.
 	ShutdownShader();
@@ -42,7 +46,7 @@ void TextureShaderClass::Shutdown()
 	return;
 }
 
-bool TextureShaderClass::Render(ID3D11DeviceContext* deviceContext, int indexCount, DirectX::XMMATRIX worldMatrix,
+bool SineTextureShaderClass::Render(ID3D11DeviceContext* deviceContext, int indexCount, DirectX::XMMATRIX worldMatrix,
 	DirectX::XMMATRIX viewMatrix, DirectX::XMMATRIX projectionMatrix, ID3D11ShaderResourceView* texture)
 {
 	bool result;
@@ -60,7 +64,7 @@ bool TextureShaderClass::Render(ID3D11DeviceContext* deviceContext, int indexCou
 	return true;
 }
 
-bool TextureShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilename, WCHAR* psFilename)
+bool SineTextureShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilename, WCHAR* psFilename)
 {
 	HRESULT result;
 	ID3D10Blob* errorMessage;
@@ -69,6 +73,7 @@ bool TextureShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR
 	D3D11_INPUT_ELEMENT_DESC polygonLayout[3];
 	unsigned int numElements;
 	D3D11_BUFFER_DESC matrixBufferDesc;
+	D3D11_BUFFER_DESC sineBufferDesc;
 	D3D11_SAMPLER_DESC samplerDesc;
 
 	// Initialize the pointers this function will use to null.
@@ -77,8 +82,8 @@ bool TextureShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR
 	pixelShaderBuffer = 0;
 
 	// Compile the vertex shader code.
-	result = D3DCompileFromFile(vsFilename, NULL, NULL, "TextureVertexShader", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0,
-			&vertexShaderBuffer, &errorMessage);
+	result = D3DCompileFromFile(vsFilename, NULL, NULL, "SimpleSinVertexShader", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0,
+		&vertexShaderBuffer, &errorMessage);
 	if (FAILED(result))
 	{
 		if (errorMessage)
@@ -94,7 +99,7 @@ bool TextureShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR
 	}
 
 	// Compile the pixel shader code.
-	result = D3DCompileFromFile(psFilename, NULL, NULL, "TexturePixelShader", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0,
+	result = D3DCompileFromFile(psFilename, NULL, NULL, "SimpleSinPixelShader", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0,
 		&pixelShaderBuffer, &errorMessage);
 	if (FAILED(result))
 	{
@@ -109,7 +114,7 @@ bool TextureShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR
 
 		return false;
 	}
-	
+
 	if (FAILED(result))
 	{
 		return false;
@@ -138,7 +143,7 @@ bool TextureShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR
 	polygonLayout[0].AlignedByteOffset = 0;
 	polygonLayout[0].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 	polygonLayout[0].InstanceDataStepRate = 0;
-	
+
 	polygonLayout[1].SemanticName = "NORMAL";
 	polygonLayout[1].SemanticIndex = 0;
 	polygonLayout[1].Format = DXGI_FORMAT_R32G32B32_FLOAT;
@@ -172,7 +177,7 @@ bool TextureShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR
 
 	pixelShaderBuffer->Release();
 	pixelShaderBuffer = 0;
-	
+
 	// Setup the description of the dynamic matrix constant buffer that is in the vertex shader.
 	matrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
 	matrixBufferDesc.ByteWidth = sizeof(MatrixBufferType);
@@ -183,6 +188,19 @@ bool TextureShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR
 
 	// Create the constant buffer pointer so we can access the vertex shader constant buffer from within this class.
 	result = device->CreateBuffer(&matrixBufferDesc, NULL, &m_matrixBuffer);
+	if (FAILED(result))
+	{
+		return false;
+	}
+
+	sineBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	sineBufferDesc.ByteWidth = sizeof(SineBufferType);
+	sineBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	sineBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	sineBufferDesc.MiscFlags = 0;
+	sineBufferDesc.StructureByteStride = 0;
+
+	result = device->CreateBuffer(&sineBufferDesc, NULL, &m_sineBuffer);
 	if (FAILED(result))
 	{
 		return false;
@@ -213,7 +231,7 @@ bool TextureShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR
 	return true;
 }
 
-void TextureShaderClass::ShutdownShader()
+void SineTextureShaderClass::ShutdownShader()
 {
 	if (m_samplerState)
 	{
@@ -228,6 +246,12 @@ void TextureShaderClass::ShutdownShader()
 		m_matrixBuffer = 0;
 	}
 
+	if (m_sineBuffer)
+	{
+		m_sineBuffer->Release();
+		m_sineBuffer = 0;
+	}
+	
 	// Release the layout.
 	if (m_layout)
 	{
@@ -252,7 +276,7 @@ void TextureShaderClass::ShutdownShader()
 	return;
 }
 
-void TextureShaderClass::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, WCHAR* shaderFilename)
+void SineTextureShaderClass::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, WCHAR* shaderFilename)
 {
 	char* compileErrors;
 	unsigned long bufferSize, i;
@@ -286,49 +310,90 @@ void TextureShaderClass::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND
 	return;
 }
 
-bool TextureShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext, DirectX::XMMATRIX worldMatrix,
+bool SineTextureShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext, DirectX::XMMATRIX worldMatrix,
 	DirectX::XMMATRIX viewMatrix, DirectX::XMMATRIX projectionMatrix, ID3D11ShaderResourceView* texture)
 {
+	cout << "HERE";
+
 	HRESULT result;
-	D3D11_MAPPED_SUBRESOURCE mappedResource;
-	MatrixBufferType* dataPtr;
-	unsigned int bufferNumber;
-	
+	D3D11_MAPPED_SUBRESOURCE mappedResourceM;
+	D3D11_MAPPED_SUBRESOURCE mappedResourceS;
+	MatrixBufferType* dataMPtr;
+	SineBufferType* dataSPtr;
+
 	// Transpose the matrices to prepare them for the shader.
 	worldMatrix = DirectX::XMMatrixTranspose(worldMatrix);
 	viewMatrix = DirectX::XMMatrixTranspose(viewMatrix);
 	projectionMatrix = DirectX::XMMatrixTranspose(projectionMatrix);
-	
+
 	// Lock the constant buffer so it can be written to.
-	result = deviceContext->Map(m_matrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	result = deviceContext->Map(m_matrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResourceM);
 	if (FAILED(result))
 	{
 		return false;
 	}
 
 	// Get a pointer to the data in the constant buffer.
-	dataPtr = (MatrixBufferType*)mappedResource.pData;
+	dataMPtr = (MatrixBufferType*)mappedResourceM.pData;
 
 	// Copy the matrices into the constant buffer.
-	dataPtr->world = worldMatrix;
-	dataPtr->view = viewMatrix;
-	dataPtr->projection = projectionMatrix;
+	dataMPtr->world = worldMatrix;
+	dataMPtr->view = viewMatrix;
+	dataMPtr->projection = projectionMatrix;
 
 	// Unlock the constant buffer.
 	deviceContext->Unmap(m_matrixBuffer, 0);
-	
-	// Set the position of the constant buffer in the vertex shader.
-	bufferNumber = 0;
 
-	// Finanly set the constant buffer in the vertex shader with the updated values.
-	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &m_matrixBuffer);
+	// Current time
+	FILETIME ft_now;
+	GetSystemTimeAsFileTime(&ft_now);
+	int ll_now = (LONGLONG)ft_now.dwLowDateTime + ((LONGLONG)(ft_now.dwHighDateTime) << 32LL);
+	float st = (ll_now / 10000) % 86400000LL;
+	st /= 1000.0;
+
+	// Lock the constant buffer so it can be written to.
+	result = deviceContext->Map(m_sineBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResourceS);
+	if (FAILED(result))
+	{
+		return false;
+	}
+
+	// Get a pointer to the data in the constant buffer.
+	dataSPtr = (SineBufferType*)mappedResourceS.pData;
+
+	dataSPtr->commonConst =		DirectX::XMFLOAT4(0.0, 0.5, 1.0, 2.0);
+	dataSPtr->waveHeights =		DirectX::XMFLOAT4(2.0, 3.5, 0.25, 0.0);
+	dataSPtr->waveLengths =		DirectX::XMFLOAT4(0.1, 0.3, 0.5, 0.5);
+	dataSPtr->waveOffset =		DirectX::XMFLOAT4(-0.5f, 0.2f, 0.45f, 0.0f);
+	dataSPtr->waveSpeed =		DirectX::XMFLOAT4(0.02, 0.015, 0.04, 0.03);
+	dataSPtr->waveDirx =		DirectX::XMFLOAT4(0.25, 0.0, -0.7, -0.8);
+	dataSPtr->waveDiry =		DirectX::XMFLOAT4(0.0, 0.45, -0.7, 0.1);
+	dataSPtr->bumpSpeed =		DirectX::XMFLOAT4(0.031, 0.04, -0.03, 0.02);
+	dataSPtr->piVector =		DirectX::XMFLOAT4(4.0, 1.57079632, 3.14159265, 6.28318530);
+	dataSPtr->sin7 =			DirectX::XMFLOAT4(1, -0.16161616, 0.0083333, -0.00019841);
+	dataSPtr->cos8 =			DirectX::XMFLOAT4(-0.5, 0.041666666, -0.0013888889, 0.000024801587);
+	dataSPtr->frcFixup =		DirectX::XMFLOAT4(1.02, 0.003, 0, 0);
+	dataSPtr->psCommonConst =	DirectX::XMFLOAT4(0, 0.5, 1, 0.25);
+	dataSPtr->highlightColor =	DirectX::XMFLOAT4(0.8, 0.76, 0.62, 1);
+	dataSPtr->waterColor =		DirectX::XMFLOAT4(0.50, 0.6, 0.7, 1);
+	dataSPtr->time =			DirectX::XMFLOAT4(st, sin(st), st/1000.0, sin(st / 1000.0));
+
+	// Unlock the constant buffer.
+	deviceContext->Unmap(m_sineBuffer, 0);
+
+	// Finally set the constant buffer in the vertex shader with the updated values.
+	deviceContext->VSSetConstantBuffers(0, 1, &m_matrixBuffer);
+
+	// Finally set the constant buffer in the vertex shader with the updated values.
+	deviceContext->VSSetConstantBuffers(1, 1, &m_sineBuffer);
+
 
 	deviceContext->PSSetShaderResources(0, 1, &texture);
 
 	return true;
 }
 
-void TextureShaderClass::RenderShader(ID3D11DeviceContext* deviceContext, int indexCount)
+void SineTextureShaderClass::RenderShader(ID3D11DeviceContext* deviceContext, int indexCount)
 {
 	// Set the vertex input layout.
 	deviceContext->IASetInputLayout(m_layout);

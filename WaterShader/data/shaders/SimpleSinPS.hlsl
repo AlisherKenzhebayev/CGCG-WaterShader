@@ -13,14 +13,14 @@ struct PixelInputType
 ////////////////////////////////////////////////////////////////////////////////
 // Pixel Shader
 ////////////////////////////////////////////////////////////////////////////////
-float4 TexturePixelShader(PixelInputType input) : SV_TARGET
+float4 SimpleSinPixelShader(PixelInputType input) : SV_TARGET
 {
 	float4 textureColor;
     
     // TODO: implement lights, at some point with normal calculation
     
-    //textureColor = float4(0, 1, 0, 1);
-    textureColor = shaderTexture.Sample(SampleType, input.texUV);
+    //textureColor = lerp(float4(0.12f, 0.4f, 0.7f, 0.6f), shaderTexture.Sample(SampleType, input.texUV), 0.5);
+    textureColor = float4(input.normal, 1.0f);
     
     return textureColor;
 }

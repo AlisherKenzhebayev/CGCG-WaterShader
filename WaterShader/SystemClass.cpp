@@ -2,7 +2,6 @@
 
 SystemClass::SystemClass() 
 {
-	m_Input = 0;
 	m_Graphics = 0;
 }
 
@@ -14,7 +13,7 @@ SystemClass::~SystemClass()
 {
 }
 
-bool SystemClass::Initialize() 
+bool SystemClass::Initialize()
 {
 	int screenWidth, screenHeight;
 	bool result;
@@ -23,23 +22,19 @@ bool SystemClass::Initialize()
 	screenWidth = 0;
 
 	InitializeWindows(screenWidth, screenHeight);
-	
-	m_Input = new InputClass;
-	if (!m_Input)
+
+	m_Graphics = new GraphicsClass;
+	if (!m_Graphics)
 	{
 		return false;
 	}
-	m_Input->Initialize();
-
-	m_Graphics = new GraphicsClass;
-	if (!m_Graphics) {
-		return false;
-	}
-
-	result = m_Graphics->Initialize(screenWidth, screenHeight, m_hwnd);
+	
+	result = m_Graphics->Initialize(m_hinstance, m_hwnd, screenWidth, screenHeight);
 	if (!result) {
+		MessageBox(m_hwnd, L"Could not initialize GraphicsClass", L"Error", MB_OK);
 		return false;
 	}
+
 	return true;
 }
 
@@ -49,11 +44,6 @@ void SystemClass::Shutdown()
 		m_Graphics->Shutdown();
 		delete m_Graphics;
 		m_Graphics = 0;
-	}
-
-	if (m_Input) {
-		delete m_Input;
-		m_Input = 0;
 	}
 
 	ShutdownWindows();
@@ -89,44 +79,20 @@ void SystemClass::Run() {
 
 bool SystemClass::Frame() {
 	bool result;
-
-	if (m_Input->IsKeyDown(VK_ESCAPE)) {
-		return false;
-	}
-
+	
+	// Do the frame processing for the application object.
 	result = m_Graphics->Frame();
-	if (!result) {
+	if (!result)
+	{
 		return false;
 	}
+
 	return true;
 }
 
 LRESULT CALLBACK SystemClass::MessageHandler(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam)
 {
-	switch (umsg)
-	{
-		// Check if a key has been pressed on the keyboard.
-		case WM_KEYDOWN:
-		{
-			// If a key is pressed send it to the input object so it can record that state.
-			m_Input->KeyDown((unsigned int)wparam);
-			return 0;
-		}
-
-		// Check if a key has been released on the keyboard.
-		case WM_KEYUP:
-		{
-			// If a key is released then send it to the input object so it can unset the state for that key.
-			m_Input->KeyUp((unsigned int)wparam);
-			return 0;
-		}
-
-		// Any other messages send to the default message handler as our application won't make use of them.
-		default:
-		{
-			return DefWindowProc(hwnd, umsg, wparam, lparam);
-		}
-	}
+	return DefWindowProc(hwnd, umsg, wparam, lparam);
 }
 
 void SystemClass::InitializeWindows(int& screenWidth, int& screenHeight) {
@@ -188,7 +154,7 @@ void SystemClass::InitializeWindows(int& screenWidth, int& screenHeight) {
 
 	// Create the window with the screen settings and get the handle to it.
 	m_hwnd = CreateWindowEx(WS_EX_APPWINDOW, m_applicationName, m_applicationName,
-		WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_POPUP,
+		WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_POPUP | WS_SYSMENU | WS_CAPTION | WS_MINIMIZEBOX,
 		posX, posY, screenWidth, screenHeight, NULL, NULL, m_hinstance, NULL);
 
 	// Bring the window up on the screen and set it as main focus.
@@ -196,8 +162,7 @@ void SystemClass::InitializeWindows(int& screenWidth, int& screenHeight) {
 	SetForegroundWindow(m_hwnd);
 	SetFocus(m_hwnd);
 
-	// Hide the mouse cursor.
-	ShowCursor(false);
+	ShowCursor(true);
 
 	return;
 }
