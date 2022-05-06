@@ -35,6 +35,7 @@ private:
 		DirectX::XMFLOAT4 waveDirx;// (0.25, 0.0, -0.7, -0.8)
 		DirectX::XMFLOAT4 waveDiry;// (0.0, 0.15, -0.7, 0.1)
 		//scale factor for distortion of base map coords
+		DirectX::XMFLOAT4 Q;// (0.0, 0.15, -0.7, 0.1)
 		//bump map scroll speed
 		DirectX::XMFLOAT4 bumpSpeed;// (0.031, 0.04, -0.03, 0.02)
 		DirectX::XMFLOAT4 piVector;// (4.0, 1.57079632, 3.14159265, 6.28318530)

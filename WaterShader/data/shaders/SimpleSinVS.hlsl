@@ -14,7 +14,8 @@ cbuffer SineBuffer : register(b1)
     float4 waveOffset; 
     float4 waveSpeed; 
     float4 waveDirx; 
-    float4 waveDiry; 
+    float4 waveDiry;
+    float4 Q;
     float4 bumpSpeed;
     float4 piVector;
     float4 sin7;
@@ -46,16 +47,18 @@ PixelInputType SimpleSinVertexShader(VertexInputType input)
     PixelInputType output;
     
     // scale UV with this factor before calculating
-    float scale = 30;
+    float scale = 1;
     // scale time with this factor
     float tScale = 0.005;
     
     // w
-    float4 frequency = 2 / waveLengths;
+    float4 frequency = sqrt((9.81 * piVector.w) / waveLengths);
     
     // dot(Di * (x, y))
     float4 bracketValue =   mul(waveDirx, input.texUV.x * scale);
     bracketValue +=         mul(waveDiry, input.texUV.y * scale);
+    //float4 bracketValue = mul(waveDirx, input.position.x * scale);
+    //bracketValue += mul(waveDiry, input.position.y * scale);
     
     // *= w
     bracketValue = mul(bracketValue, frequency);
@@ -74,12 +77,18 @@ PixelInputType SimpleSinVertexShader(VertexInputType input)
     //bracketValue -= 0.5f;
     //bracketValue *= piVector.w;
     
+    //
+    
     float4 sinValue = sin(bracketValue);
     float4 cosValue = cos(bracketValue);
     
+    sinValue += 1.0;
+    sinValue /= 2.0;
+    sinValue = pow(sinValue, Q);
+    
     //TODO: vertex displacement
     //if(input.position.y % 2 == 0)
-    input.position.xyz += input.normal * dot(sinValue, waveHeights); // TODO: something's wrong
+    input.position.xyz += input.normal * dot(sinValue, waveHeights) * 2;
     
     // Calculate the position of the vertex against the world, view, and projection matrices.
     output.position = mul(input.position, worldMatrix);
