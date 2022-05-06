@@ -34,14 +34,18 @@ private:
 		//diection of waves in tangent space (also controls frequency in space)
 		DirectX::XMFLOAT4 waveDirx;// (0.25, 0.0, -0.7, -0.8)
 		DirectX::XMFLOAT4 waveDiry;// (0.0, 0.15, -0.7, 0.1)
-		//scale factor for distortion of base map coords
-		DirectX::XMFLOAT4 Q;// (0.0, 0.15, -0.7, 0.1)
+		
+		DirectX::XMFLOAT4 Q;
+		DirectX::XMFLOAT4 K;
+
 		//bump map scroll speed
 		DirectX::XMFLOAT4 bumpSpeed;// (0.031, 0.04, -0.03, 0.02)
 		DirectX::XMFLOAT4 piVector;// (4.0, 1.57079632, 3.14159265, 6.28318530)
+		
 		//Vectors for taylor's series expansion of sin and cos
 		DirectX::XMFLOAT4 sin7;// (1, -0.16161616, 0.0083333, -0.00019841)
 		DirectX::XMFLOAT4 cos8;// (-0.5, 0.041666666, -0.0013888889, 0.000024801587)
+		
 		//frcFixup.x is a fixup to make the edges of the clamped sin wave match up again due to numerical inaccuracy
 		//frcFixup.y should be equal to the average of du/dx and dv/dy for the base texture coords.. this scales the warping of the normal
 		DirectX::XMFLOAT4 frcFixup;// (1.02, 0.003, 0, 0)
