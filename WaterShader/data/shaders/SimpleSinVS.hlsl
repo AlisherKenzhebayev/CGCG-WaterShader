@@ -42,7 +42,7 @@ struct PixelInputType
     float2 texUV : TEXCOORD0;
 };
 
-float4 CalcQ(float4 Q, float4 freq, float4 ampl, float4 numWaves = 2)
+float4 CalcQ(float4 Q, float4 freq, float4 ampl)
 {
     return Q / (freq * ampl);
 }
@@ -53,6 +53,7 @@ PixelInputType SimpleSinVertexShader(VertexInputType input)
     
     // w
     float4 frequency = sqrt((9.81 * piVector.w) / waveLengths);
+    float4 waveHeight = waveLengths * waveHeights;
     
     float4 x = input.texUV.x;
     float4 y = input.texUV.y;
@@ -82,18 +83,17 @@ PixelInputType SimpleSinVertexShader(VertexInputType input)
     //sinValue = pow(sinValue, K);
     
     // Calculating Gerstner waves
-    float4 valSteepness = mul(waveHeights, CalcQ(Q, frequency, waveHeights));
-    float4 calcX = mul(dotX, cosValue);
-    calcX = dot(calcX, valSteepness);
-    calcX *= cosValue;
-    float4 calcY = mul(dotY, cosValue);
-    calcY = dot(calcY, valSteepness);
-    calcY *= cosValue;
+    // QiAi
+    float4 valSteepness = mul(waveHeight, CalcQ(Q, frequency, waveHeight));
+    float4 calcX = mul(cosValue, dotX);
+    calcX = dot(valSteepness, calcX);
+    float4 calcY = mul(cosValue, dotY);
+    calcY = dot(valSteepness, calcY);
     
     // Vertex displacement
     input.position.x += calcX;
     input.position.z += calcY;
-    input.position.y = dot(sinValue, waveHeights);
+    input.position.y = dot(sinValue, waveHeight);
     
     // Calculate the position of the vertex against the world, view, and projection matrices.
     output.position = mul(input.position, worldMatrix);
@@ -101,7 +101,7 @@ PixelInputType SimpleSinVertexShader(VertexInputType input)
     output.position = mul(output.position, projectionMatrix);
     
     //TODO: update normals based on sine eq
-    output.normal = sinValue.xxx; //sin(bracketValue.x).xxx;
+    output.normal = input.normal; //sin(bracketValue.x).xxx;
     // Normalize the normal vector.
     //output.normal = normalize(output.normal);
     
