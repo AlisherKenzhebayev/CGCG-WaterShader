@@ -6,6 +6,7 @@
 #include "d3dclass.h"
 #include "cameraclass.h"
 #include "modelclass.h"
+#include "lightclass.h"
 #include "timerclass.h"
 #include "positionclass.h"
 #include "sinetextureshaderclass.h"
@@ -39,6 +40,7 @@ private:
 	ModelClass* m_Model;
 	SineTextureShaderClass* m_Shader;
 	TimerClass* m_Timer;
+	LightClass* m_Light;
 };
 
 #endif

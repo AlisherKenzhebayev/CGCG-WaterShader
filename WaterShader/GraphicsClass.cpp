@@ -11,6 +11,7 @@ GraphicsClass::GraphicsClass()
 	m_Model = 0;
 	m_Shader = 0;
 	m_Timer = 0;
+	m_Light = 0;
 	m_Position = 0;
 }
 
@@ -120,6 +121,17 @@ bool GraphicsClass::Initialize(HINSTANCE hInstance, HWND hwnd, int screenWidth, 
 		return false;
 	}
 
+	// Create the light object.
+	m_Light = new LightClass;
+	if (!m_Light)
+	{
+		return false;
+	}
+	
+	// Initialize the light object.
+	m_Light->SetDiffuseColor(1.0f, 0.35f, 0.32f, 1.0f);
+	m_Light->SetDirection(0.0f, 1.0f, 0.0f);
+
 	m_Position = new PositionClass;
 	if (!m_Position)
 	{
@@ -136,6 +148,13 @@ bool GraphicsClass::Initialize(HINSTANCE hInstance, HWND hwnd, int screenWidth, 
 
 void GraphicsClass::Shutdown()
 {
+	// Release the light object
+	if (m_Light)
+	{
+		delete m_Light;
+		m_Light = 0;
+	}
+
 	// Release the position object.
 	if (m_Position)
 	{
@@ -251,6 +270,12 @@ bool GraphicsClass::HandleInput(float frameTime)
 	keyDown = m_Input->IsZPressed();
 	m_Position->MoveDownward(keyDown);
 
+	keyDown = m_Input->IsCPressed();
+	m_Position->MoveLeftSideways(keyDown);
+
+	keyDown = m_Input->IsVPressed();
+	m_Position->MoveRightSideways(keyDown);
+
 	keyDown = m_Input->IsPgUpPressed();
 	m_Position->LookUpward(keyDown);
 
@@ -289,10 +314,11 @@ bool GraphicsClass::Render()
 	// Put the model vertex and index buffers on the graphics pipeline to prepare them for drawing.
 	m_Model->Render(m_D3D->GetDeviceContext());
 
-	// TODO: support for multiple models in a scene
+	// TODO: Add a second/third model into the scene 
+	// TODO: Add support for multiple models in a scene
 
 	// Render the model using the color shader.
-	result = m_Shader->Render(m_D3D->GetDeviceContext(), m_Model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Model->GetTexture());
+	result = m_Shader->Render(m_D3D->GetDeviceContext(), m_Model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Model->GetTexture(), m_Light->GetDirection(), m_Light->GetDiffuseColor());
 	if (!result)
 	{
 		return false;

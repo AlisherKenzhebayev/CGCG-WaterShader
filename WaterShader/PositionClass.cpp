@@ -266,6 +266,76 @@ void PositionClass::TurnRight(bool keydown)
 	return;
 }
 
+void PositionClass::MoveRightSideways(bool keydown)
+{
+	float radians;
+
+	// Update the upward rotation speed movement based on the frame time and whether the user is holding the key down or not.
+	if (keydown)
+	{
+		m_moveRSideSpeed += m_frameTime * 0.01f;
+
+		if (m_moveRSideSpeed > (m_frameTime * 0.15f))
+		{
+			m_moveRSideSpeed = m_frameTime * 0.15f;
+		}
+	}
+	else
+	{
+		m_moveRSideSpeed -= m_frameTime * 0.005f;
+
+		if (m_moveRSideSpeed < 0.0f)
+		{
+			m_moveRSideSpeed = 0.0f;
+		}
+	}
+
+	// Convert degrees to radians.
+	radians = (m_rotationY + 90) * 0.0174532925f;
+
+	// Update the position.
+	m_positionX += sinf(radians) * m_moveRSideSpeed;
+	m_positionZ += cosf(radians) * m_moveRSideSpeed;
+
+	return;
+}
+
+
+void PositionClass::MoveLeftSideways(bool keydown)
+{
+	float radians;
+
+	// Update the upward rotation speed movement based on the frame time and whether the user is holding the key down or not.
+	if (keydown)
+	{
+		m_moveLSideSpeed += m_frameTime * 0.01f;
+
+		if (m_moveLSideSpeed > (m_frameTime * 0.15f))
+		{
+			m_moveLSideSpeed = m_frameTime * 0.15f;
+		}
+	}
+	else
+	{
+		m_moveLSideSpeed -= m_frameTime * 0.005f;
+
+		if (m_moveLSideSpeed < 0.0f)
+		{
+			m_moveLSideSpeed = 0.0f;
+		}
+	}
+
+	// Convert degrees to radians.
+	radians = (m_rotationY + 90) * 0.0174532925f;
+
+	// Update the position.
+	m_positionX -= sinf(radians) * m_moveLSideSpeed;
+	m_positionZ -= cosf(radians) * m_moveLSideSpeed;
+
+	return;
+}
+
+
 void PositionClass::LookUpward(bool keydown)
 {
 	// Update the upward rotation speed movement based on the frame time and whether the user is holding the key down or not.
@@ -299,6 +369,7 @@ void PositionClass::LookUpward(bool keydown)
 
 	return;
 }
+
 
 void PositionClass::LookDownward(bool keydown)
 {

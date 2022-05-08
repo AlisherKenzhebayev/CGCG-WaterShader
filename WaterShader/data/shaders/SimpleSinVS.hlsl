@@ -100,10 +100,11 @@ PixelInputType SimpleSinVertexShader(VertexInputType input)
     output.position = mul(output.position, viewMatrix);
     output.position = mul(output.position, projectionMatrix);
     
-    //TODO: update normals based on sine eq
-    output.normal = input.normal; //sin(bracketValue.x).xxx;
+    // TODO: update normals based on calculation of tangent and bitangent
+    output.normal = mul(input.normal, (float3x3) worldMatrix);
+    
     // Normalize the normal vector.
-    //output.normal = normalize(output.normal);
+    output.normal = normalize(output.normal);
     
     output.texUV = input.texUV;
     
