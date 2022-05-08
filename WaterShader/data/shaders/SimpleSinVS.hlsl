@@ -53,14 +53,14 @@ PixelInputType SimpleSinVertexShader(VertexInputType input)
     
     // w
     float4 frequency = sqrt((9.81 * piVector.w) / waveLengths);
-    float4 waveHeight = waveLengths * waveHeights;
+    float4 waveHeight = waveHeights;
     
-    float4 x = input.texUV.x;
-    float4 y = input.texUV.y;
+    float4 x = input.position.xxxx;
+    float4 y = input.position.zzzz;
     
     // dot(Di * (x, y)) - Taking as point of reference the UV mapping
-    float4 dotX = mul(waveDirx, x);
-    float4 dotY = mul(waveDiry, y);
+    float4 dotX = waveDirx * x;
+    float4 dotY = waveDiry * y;
     float4 bracketValue = dotX + dotY;
     
     /*// This is ill-advised, as the values are a multiple times harder to calculate and set up + requires GPU side tesselation to look normal.
@@ -68,7 +68,7 @@ PixelInputType SimpleSinVertexShader(VertexInputType input)
     bracketValue += mul(waveDiry, input.position.y * scale);*/
     
     // *= w
-    bracketValue = mul(bracketValue, frequency);
+    bracketValue = bracketValue * frequency;
     
     float4 phase = waveSpeed * frequency;
     float4 shift = phase * time.z;
@@ -84,19 +84,24 @@ PixelInputType SimpleSinVertexShader(VertexInputType input)
     
     // Calculating Gerstner waves
     // QiAi
-    float4 valSteepness = mul(waveHeight, CalcQ(Q, frequency, waveHeight));
-    float4 calcX = mul(cosValue, dotX);
+    float4 k = piVector.wwww / waveLengths;
+
+    float4 valSteepness = waveHeight * CalcQ(Q, frequency, waveHeight);
+    float4 calcX = (cosValue * waveDirx);
     calcX = dot(valSteepness, calcX);
-    float4 calcY = mul(cosValue, dotY);
+    float4 calcY = (cosValue * waveDiry);
     calcY = dot(valSteepness, calcY);
     
+    
     // Vertex displacement
-    input.position.x += calcX;
-    input.position.z += calcY;
-    input.position.y = dot(sinValue, waveHeight);
+    float4 position = input.position;
+    
+    position.x += calcX;
+    position.z += calcY;
+    position.y = dot(sinValue, waveHeight);
     
     // Calculate the position of the vertex against the world, view, and projection matrices.
-    output.position = mul(input.position, worldMatrix);
+    output.position = mul(position, worldMatrix);
     output.position = mul(output.position, viewMatrix);
     output.position = mul(output.position, projectionMatrix);
     

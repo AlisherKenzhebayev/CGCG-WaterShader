@@ -40,7 +40,7 @@ bool GraphicsClass::Initialize(HINSTANCE hInstance, HWND hwnd, int screenWidth, 
 	m_Input->Initialize(hInstance, hwnd, screenWidth, screenHeight);
 
 	WCHAR* textureFilename = (WCHAR*)L"./data/textures/water.jpg";
-	std::string modelFilename = "./data/objects/untitled.ply";
+	std::string modelFilename = "./data/objects/3.ply";
 
 	m_D3D = new D3DClass;
 	if (!m_D3D) {
@@ -130,7 +130,7 @@ bool GraphicsClass::Initialize(HINSTANCE hInstance, HWND hwnd, int screenWidth, 
 	
 	// Initialize the light object.
 	m_Light->SetDiffuseColor(1.0f, 0.35f, 0.32f, 1.0f);
-	m_Light->SetDirection(0.0f, 1.0f, 0.0f);
+	m_Light->SetDirection(0.0f, -1.0f, 0.0f);
 
 	m_Position = new PositionClass;
 	if (!m_Position)
