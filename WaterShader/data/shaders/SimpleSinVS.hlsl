@@ -11,7 +11,6 @@ cbuffer SineBuffer : register(b1)
     float4 commonConst;
     float4 waveHeights;
     float4 waveLengths;
-    float4 waveOffset;
     float4 waveSpeed;
     float4 waveDirx;
     float4 waveDiry;
@@ -19,9 +18,6 @@ cbuffer SineBuffer : register(b1)
     float4 K;
     float4 bumpSpeed;
     float4 piVector;
-    float4 sin7;
-    float4 cos8;
-    float4 frcFixup;
     float4 psCommonConst;
     float4 highlightColor;
     float4 waterColor;
@@ -55,38 +51,31 @@ PixelInputType SimpleSinVertexShader(VertexInputType input)
     float4 frequency = sqrt((9.81 * piVector.w) / waveLengths);
     float4 waveHeight = waveHeights;
     
-    float4 x = input.position.xxxx;
-    float4 y = input.position.zzzz;
+    float4 x = input.position.x;
+    float4 y = input.position.z;
     
     // dot(Di * (x, y)) - Taking as point of reference the UV mapping
     float4 dotX = waveDirx * x;
     float4 dotY = waveDiry * y;
     float4 bracketValue = dotX + dotY;
     
-    /*// This is ill-advised, as the values are a multiple times harder to calculate and set up + requires GPU side tesselation to look normal.
-    float4 bracketValue = mul(waveDirx, input.position.x * scale); 
-    bracketValue += mul(waveDiry, input.position.y * scale);*/
-    
     // *= w
     bracketValue = bracketValue * frequency;
     
     float4 phase = waveSpeed * frequency;
     float4 shift = phase * time.z;
-    bracketValue += shift + waveOffset;
+    bracketValue += shift;
     
     float4 sinValue = sin(bracketValue);
     float4 cosValue = cos(bracketValue);
-    
-    // Starting off the Eq 8.1, mode in additive sines
-    //sinValue += 1.0;
-    //sinValue /= 2.0;
-    //sinValue = pow(sinValue, K);
     
     // Calculating Gerstner waves
     // QiAi
     float4 k = piVector.wwww / waveLengths;
 
-    float4 valSteepness = waveHeight * CalcQ(Q, frequency, waveHeight);
+    float4 Qi = CalcQ(Q, frequency, waveHeight);
+    
+    float4 valSteepness = waveHeight * Qi;
     float4 calcX = (cosValue * waveDirx);
     calcX = dot(valSteepness, calcX);
     float4 calcY = (cosValue * waveDiry);
@@ -96,8 +85,8 @@ PixelInputType SimpleSinVertexShader(VertexInputType input)
     // Vertex displacement
     float4 position = input.position;
     
-    position.x += calcX;
-    position.z += calcY;
+    position.x = position.x + calcX;
+    position.z = position.z + calcY;
     position.y = dot(sinValue, waveHeight);
     
     // Calculate the position of the vertex against the world, view, and projection matrices.
@@ -105,9 +94,31 @@ PixelInputType SimpleSinVertexShader(VertexInputType input)
     output.position = mul(output.position, viewMatrix);
     output.position = mul(output.position, projectionMatrix);
     
-    // TODO: update normals based on calculation of tangent and bitangent
-    output.normal = mul(input.normal, (float3x3) worldMatrix);
+    // Update normals based on calculation of tangent and bitangent
+    float4 dotDP = waveDirx * position.x;
+    dotDP += waveDiry * position.z;
+    //dotDP += position.y;
     
+    float4 WA = frequency * waveHeight;
+    float4 S = sin(frequency * dotDP + shift);
+    float4 C = cos(frequency * dotDP + shift);
+    
+    float3 binormal = float3(
+        1 - dot(Qi, pow(waveDirx, 2) * WA * S), 
+        -dot(Qi, waveDirx * waveDiry * WA * S),
+        dot(waveDirx, WA * C));
+    float3 tangent = float3(
+        -dot(Qi, waveDirx * waveDiry * WA * S),
+        1 - dot(Qi, pow(waveDiry, 2) * WA * S),
+        dot(waveDiry, WA * C));
+    float3 normal = float3(
+        -dot(waveDiry, WA * C),
+        1 - dot(Qi, WA * S),
+        -dot(waveDirx, WA * C));
+    
+    output.normal = normal; 
+    
+    output.normal = mul(output.normal, (float3x3) worldMatrix);
     // Normalize the normal vector.
     output.normal = normalize(output.normal);
     

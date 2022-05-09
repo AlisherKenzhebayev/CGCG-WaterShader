@@ -384,19 +384,15 @@ bool SineTextureShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceCont
 	dataSPtr = (SineBufferType*)mappedResource.pData;
 
 	dataSPtr->commonConst =		DirectX::XMFLOAT4(0.0, 0.5, 1.0, 2.0);
-	dataSPtr->waveHeights =		DirectX::XMFLOAT4(1.2, 1.25, 0.6, 2);
-	dataSPtr->waveLengths =		RandomizeWithTime(DirectX::XMFLOAT4(3000, 250, 60, 100), st, rand() % 10);
-	dataSPtr->waveOffset =		DirectX::XMFLOAT4(-0.5f, 0.2f, 0.45f, 0.0f);
+	dataSPtr->waveHeights =		DirectX::XMFLOAT4(2.5, 1.25, 0.7, 0.35);
+	dataSPtr->waveLengths =		RandomizeWithTime(DirectX::XMFLOAT4(500, 250, 120, 60), st, rand() % 10);
 	dataSPtr->waveSpeed =		DirectX::XMFLOAT4(2.5, 0.75, 1, 1.5);
 	dataSPtr->waveDirx =		DirectX::XMFLOAT4(0.25, 0.0, -0.7, -0.8);
 	dataSPtr->waveDiry =		DirectX::XMFLOAT4(0.0, 0.15, -0.7, 0.1);
-	dataSPtr->Q =				DirectX::XMFLOAT4(0.2, 0.4, 0.5, 0.5);
+	dataSPtr->Q =				DirectX::XMFLOAT4(0.2, 0.4, 0.2, 0.1);
 	dataSPtr->K =				DirectX::XMFLOAT4(2, 3, 2, 3);
 	dataSPtr->bumpSpeed =		DirectX::XMFLOAT4(0.031, 0.04, -0.03, 0.02);
 	dataSPtr->piVector =		DirectX::XMFLOAT4(4.0, 1.57079632, 3.14159265, 6.28318530);
-	dataSPtr->sin7 =			DirectX::XMFLOAT4(1, -0.16161616, 0.0083333, -0.00019841);
-	dataSPtr->cos8 =			DirectX::XMFLOAT4(-0.5, 0.041666666, -0.0013888889, 0.000024801587);
-	dataSPtr->frcFixup =		DirectX::XMFLOAT4(1.02, 0.003, 0, 0);
 	dataSPtr->psCommonConst =	DirectX::XMFLOAT4(0, 0.5, 1, 0.25);
 	dataSPtr->highlightColor =	DirectX::XMFLOAT4(0.8, 0.76, 0.62, 1);
 	dataSPtr->waterColor =		DirectX::XMFLOAT4(0.50, 0.6, 0.7, 1);
