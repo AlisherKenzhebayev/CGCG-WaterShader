@@ -175,6 +175,8 @@
     <ClCompile Include="GraphicsClass.cpp" />
     <ClCompile Include="PositionClass.cpp" />
     <ClCompile Include="PositionClass.h" />
+    <ClCompile Include="RefractionShaderClass.cpp" />
+    <ClCompile Include="RenderTextureClass.cpp" />
     <ClCompile Include="SineTextureShaderClass.cpp" />
     <ClCompile Include="TextureClass.cpp" />
     <ClCompile Include="SystemClass.cpp" />
@@ -188,6 +190,8 @@
     <ClInclude Include="ColorShaderClass.h" />
     <ClInclude Include="LightClass.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="RefractionShaderClass.h" />
+    <ClInclude Include="RenderTextureClass.h" />
     <ClInclude Include="SineTextureShaderClass.h" />
     <ClInclude Include="TextureClass.h" />
     <ClInclude Include="ModelClass.h" />
@@ -200,8 +204,16 @@
   <ItemGroup>
     <None Include="data\shaders\ColorPS.hlsl" />
     <None Include="data\shaders\ColorVS.hlsl" />
-    <None Include="data\shaders\TexturePS.hlsl" />
-    <None Include="data\shaders\TextureVS.hlsl" />
+    <FxCompile Include="data\shaders\TexturePS.hlsl">
+      <FileType>Document</FileType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TexturePixelShader</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="data\shaders\TextureVS.hlsl">
+      <FileType>Document</FileType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TextureVertexShader</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DirectXTK\DirectXTK_Desktop_2019_Win10.vcxproj">
@@ -209,6 +221,14 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <FxCompile Include="data\shaders\RefractionPS.hlsl">
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">RefractionPixelShader</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="data\shaders\RefractionVS.hlsl">
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">RefractionVertexShader</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+    </FxCompile>
     <FxCompile Include="data\shaders\SimpleSinPS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">SimpleSinPixelShader</EntryPointName>

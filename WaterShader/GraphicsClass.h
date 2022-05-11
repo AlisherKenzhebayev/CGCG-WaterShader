@@ -10,6 +10,9 @@
 #include "timerclass.h"
 #include "positionclass.h"
 #include "sinetextureshaderclass.h"
+#include "RenderTextureClass.h"
+#include "RefractionShaderClass.h"
+#include "TextureShaderClass.h"
 
 const bool FULL_SCREEN = false;
 const bool VSYNC_ENABLED = true;
@@ -27,9 +30,14 @@ public:
 	bool Initialize(HINSTANCE, HWND, int, int);
 	void Shutdown();
 	bool Frame();
+	bool Render();
 
 private:
-	bool Render();
+
+	bool RenderRefractionToTexture();
+	bool RenderReflectionToTexture();
+	bool RenderScene();
+
 	bool HandleInput(float);
 
 private:
@@ -37,7 +45,13 @@ private:
 	D3DClass* m_D3D;
 	CameraClass* m_Camera;
 	PositionClass* m_Position;
-	ModelClass* m_Model;
+	
+	ModelClass* m_GroundModel, * m_WallModel, * m_BathModel, * m_WaterModel;
+	RenderTextureClass* m_RefractionTexture, * m_ReflectionTexture;
+	RefractionShaderClass* m_RefractionShader;
+	TextureShaderClass* m_LightShader;
+	float m_waterHeight, m_waterTranslation;
+
 	SineTextureShaderClass* m_Shader;
 	TimerClass* m_Timer;
 	LightClass* m_Light;

@@ -87,6 +87,12 @@ bool SystemClass::Frame() {
 		return false;
 	}
 
+	result = m_Graphics->Render();
+	if (!result)
+	{
+		return false;
+	}
+
 	return true;
 }
 

@@ -470,3 +470,15 @@ void D3DClass::GetVideoCardInfo(char* cardName, int& memory)
 	memory = m_videoCardMemory;
 	return;
 }
+
+ID3D11DepthStencilView* D3DClass::GetDepthStencilView()
+{
+	return m_depthStencilView;
+}
+
+void D3DClass::SetBackBufferRenderTarget()
+{
+	m_deviceContext->OMSetRenderTargets(1, &m_renderTargetView, m_depthStencilView);
+
+	return;
+}

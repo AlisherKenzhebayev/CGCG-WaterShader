@@ -6,7 +6,12 @@ cbuffer MatrixBuffer : register(b0)
     matrix projectionMatrix;
 };
 
-cbuffer SineBuffer : register(b1)
+cbuffer ReflectionBuffer : register(b1)
+{
+    matrix reflectionMatrix;
+};
+
+cbuffer SineBuffer : register(b2)
 {
     float4 commonConst;
     float4 waveHeights;
@@ -24,6 +29,7 @@ cbuffer SineBuffer : register(b1)
     float4 time;
 };
 
+
 struct VertexInputType
 {
     float4 position : POSITION;
@@ -36,6 +42,9 @@ struct PixelInputType
     float4 position : SV_POSITION;
     float3 normal : NORMAL;
     float2 texUV : TEXCOORD0;
+    float4 reflectionPosition : TEXCOORD1;
+    float4 refractionPosition : TEXCOORD2;
+    float depth : TEXCOORD3;
 };
 
 float4 CalcQ(float4 Q, float4 freq, float4 ampl)
@@ -46,6 +55,10 @@ float4 CalcQ(float4 Q, float4 freq, float4 ampl)
 PixelInputType SimpleSinVertexShader(VertexInputType input)
 {
     PixelInputType output;
+    matrix reflectProjectWorld;
+    matrix viewProjectWorld;
+    
+    input.position.w = 1.0f;
     
     // w
     float4 frequency = sqrt((9.81 * piVector.w) / waveLengths);
@@ -117,12 +130,25 @@ PixelInputType SimpleSinVertexShader(VertexInputType input)
         -dot(waveDirx, WA * C));
     
     output.normal = normal; 
-    
     output.normal = mul(output.normal, (float3x3) worldMatrix);
-    // Normalize the normal vector.
     output.normal = normalize(output.normal);
-    
     output.texUV = input.texUV;
+    output.depth = input.position.y;
+    
+    // Calculate reflections and refractions
+    // Create the reflection projection world matrix.
+    reflectProjectWorld = mul(reflectionMatrix, projectionMatrix);
+    reflectProjectWorld = mul(worldMatrix, reflectProjectWorld);
+
+    // Calculate the input position against the reflectProjectWorld matrix.
+    output.reflectionPosition = mul(input.position, reflectProjectWorld);
+    
+    // Create the view projection world matrix for refraction.
+    viewProjectWorld = mul(viewMatrix, projectionMatrix);
+    viewProjectWorld = mul(worldMatrix, viewProjectWorld);
+   
+    // Calculate the input position against the viewProjectWorld matrix.
+    output.refractionPosition = mul(input.position, viewProjectWorld);
     
     return output;
 }

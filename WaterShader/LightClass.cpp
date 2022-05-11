@@ -19,6 +19,12 @@ LightClass::~LightClass()
 }
 
 
+void LightClass::SetAmbientColor(float red, float green, float blue, float alpha)
+{
+	m_ambientColor = DirectX::XMFLOAT4(red, green, blue, alpha);
+	return;
+}
+
 void LightClass::SetDiffuseColor(float red, float green, float blue, float alpha)
 {
 	m_diffuseColor = DirectX::XMFLOAT4(red, green, blue, alpha);
@@ -32,6 +38,11 @@ void LightClass::SetDirection(float x, float y, float z)
 	return;
 }
 
+
+DirectX::XMFLOAT4 LightClass::GetAmbientColor()
+{
+	return m_ambientColor;
+}
 
 DirectX::XMFLOAT4 LightClass::GetDiffuseColor()
 {
