@@ -79,7 +79,7 @@ float4 SimpleSinPixelShader(PixelInputType input) : SV_TARGET
     refractionColor = refractionTexture.Sample(SampleType, refractTexCoord);
     
     // Combine the reflection and refraction results for the final color.
-    envColor = lerp(reflectionColor, refractionColor, 0.6f);
+    envColor = lerp(reflectionColor, refractionColor, 0.3f);
     
     textureColor = lerp(colorL1, colorL2, 0.0f);
 
@@ -102,6 +102,7 @@ float4 SimpleSinPixelShader(PixelInputType input) : SV_TARGET
     
     color = color * textureColor * envColor;
 
+    //color = float4(input.position.xz / 255, 1.0f, 1.0f);    
     //color = float4(input.normal, 1.0f);    
     return color;
 }

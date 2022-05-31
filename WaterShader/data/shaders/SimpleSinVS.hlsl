@@ -99,8 +99,8 @@ PixelInputType SimpleSinVertexShader(VertexInputType input)
     float4 position = input.position;
     
     position.x = position.x + calcX;
-    position.z = position.z + calcY;
     position.y = dot(sinValue, waveHeight);
+    position.z = position.z + calcY;
     
     // Calculate the position of the vertex against the world, view, and projection matrices.
     output.position = mul(position, worldMatrix);
@@ -125,11 +125,14 @@ PixelInputType SimpleSinVertexShader(VertexInputType input)
         1 - dot(Qi, pow(waveDiry, 2) * WA * S),
         dot(waveDiry, WA * C));
     float3 normal = float3(
+        -dot(waveDirx, WA * C),
         -dot(waveDiry, WA * C),
-        1 - dot(Qi, WA * S),
-        -dot(waveDirx, WA * C));
+        1 - dot(Qi, WA * S));
     
-    output.normal = normal; 
+    float3 normalCalc = normal;//cross(binormal, tangent);
+    
+    // Switch y and z..
+    output.normal = float3(normalCalc.x, normalCalc.z, normalCalc.y);
     output.normal = mul(output.normal, (float3x3) worldMatrix);
     output.normal = normalize(output.normal);
     output.texUV = input.texUV;

@@ -175,10 +175,10 @@ bool GraphicsClass::Initialize(HINSTANCE hInstance, HWND hwnd, int screenWidth, 
 	}
 	
 	// Initialize the light object.
-	m_Light->SetAmbientColor(0.15f, 0.15f, 0.15f, 1.0f);
+	m_Light->SetAmbientColor(0.25f, 0.25f, 0.25f, 1.0f);
 	//m_Light->SetDiffuseColor(1.0f, 0.35f, 0.32f, 1.0f);
 	m_Light->SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
-	m_Light->SetDirection(0.0f, -1.0f, 0.0f);
+	m_Light->SetDirection(1.0f, -1.0f, 1.0f);
 
 	// Create the refraction render to texture object.
 	m_RefractionTexture = new RenderTextureClass;
@@ -506,7 +506,9 @@ bool GraphicsClass::RenderReflectionToTexture()
 
 	// Render the wall model using the light shader and the reflection view matrix.
 	result = m_LightShader->Render(m_D3D->GetDeviceContext(), m_WallModel->GetIndexCount(), worldMatrix, reflectionViewMatrix,
-		projectionMatrix, m_WallModel->GetTexture());
+		projectionMatrix, 
+		m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(), 
+		m_WallModel->GetTexture());
 	if (!result)
 	{
 		return false;
@@ -586,7 +588,9 @@ bool GraphicsClass::RenderScene()
 	
 	m_GroundModel->Render(m_D3D->GetDeviceContext());
 	result = m_LightShader->Render(m_D3D->GetDeviceContext(), m_GroundModel->GetIndexCount(), worldMatrix, viewMatrix,
-		projectionMatrix, m_GroundModel->GetTexture());
+		projectionMatrix, 
+		m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(),
+		m_GroundModel->GetTexture());
 	if (!result)
 	{
 		return false;
@@ -597,7 +601,9 @@ bool GraphicsClass::RenderScene()
 
 	m_WallModel->Render(m_D3D->GetDeviceContext());
 	result = m_LightShader->Render(m_D3D->GetDeviceContext(), m_WallModel->GetIndexCount(), worldMatrix, viewMatrix,
-		projectionMatrix, m_WallModel->GetTexture());
+		projectionMatrix, 
+		m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(),
+		m_WallModel->GetTexture());
 	if (!result)
 	{
 		return false;
@@ -608,7 +614,9 @@ bool GraphicsClass::RenderScene()
 
 	m_BathModel->Render(m_D3D->GetDeviceContext());
 	result = m_LightShader->Render(m_D3D->GetDeviceContext(), m_BathModel->GetIndexCount(), worldMatrix, viewMatrix,
-		projectionMatrix, m_BathModel->GetTexture());
+		projectionMatrix, 
+		m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(),
+		m_BathModel->GetTexture());
 	if (!result)
 	{
 		return false;

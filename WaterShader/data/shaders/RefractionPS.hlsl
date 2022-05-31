@@ -14,8 +14,8 @@ cbuffer LightBuffer
 struct PixelInputType
 {
     float4 position : SV_POSITION;
-    float2 tex : TEXCOORD0;
     float3 normal : NORMAL;
+    float2 texUV : TEXCOORD0;
     float clip : SV_ClipDistance0;
 };
 
@@ -30,7 +30,7 @@ float4 RefractionPixelShader(PixelInputType input) : SV_TARGET
     float4 color;
 	
     // Sample the texture pixel at this location.
-    textureColor = shaderTexture.Sample(SampleType, input.tex);
+    textureColor = shaderTexture.Sample(SampleType, input.texUV);
 	
     // Set the default output color to the ambient light value for all pixels.
     color = ambientColor;
