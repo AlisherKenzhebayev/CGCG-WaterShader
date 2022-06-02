@@ -1,7 +1,4 @@
 #include "SineTextureShaderClass.h"
-#include <stdio.h>
-#include <fstream>
-#include <iostream>
 
 SineTextureShaderClass::SineTextureShaderClass()
 {
@@ -10,6 +7,11 @@ SineTextureShaderClass::SineTextureShaderClass()
 	m_layout = 0;
 	m_matrixBuffer = 0;
 	m_sineBuffer = 0;
+	m_lightBuffer = 0;
+	m_reflectionBuffer = 0;
+	m_waterBuffer = 0;
+	m_cameraBuffer = 0;
+
 	m_samplerState = 0;
 }
 
@@ -47,12 +49,21 @@ void SineTextureShaderClass::Shutdown()
 }
 
 bool SineTextureShaderClass::Render(ID3D11DeviceContext* deviceContext, int indexCount, DirectX::XMMATRIX worldMatrix,
-	DirectX::XMMATRIX viewMatrix, DirectX::XMMATRIX projectionMatrix, ID3D11ShaderResourceView* texture)
+	DirectX::XMMATRIX viewMatrix, DirectX::XMMATRIX projectionMatrix, 
+	DirectX::XMMATRIX reflectionMatrix,
+	ID3D11ShaderResourceView* reflectionTexture, ID3D11ShaderResourceView* refractionTexture,
+	ID3D11ShaderResourceView* normalTexture, float waterTranslation, float reflectRefractScale,
+	DirectX::XMFLOAT3 lightDirection, DirectX::XMFLOAT4 ambientColor, DirectX::XMFLOAT4 diffuseColor,
+	DirectX::XMFLOAT3 cameraPosition, DirectX::XMFLOAT4 specularColor, float specularPower)
 {
 	bool result;
 
-
-	result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, texture);
+	result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, 
+		reflectionMatrix,
+		reflectionTexture, refractionTexture,
+		normalTexture, waterTranslation, reflectRefractScale, 
+		lightDirection, ambientColor, diffuseColor,
+		cameraPosition, specularColor, specularPower);
 	if (!result)
 	{
 		return false;
@@ -70,10 +81,17 @@ bool SineTextureShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, W
 	ID3D10Blob* errorMessage;
 	ID3D10Blob* vertexShaderBuffer;
 	ID3D10Blob* pixelShaderBuffer;
+	
 	D3D11_INPUT_ELEMENT_DESC polygonLayout[3];
 	unsigned int numElements;
+	
 	D3D11_BUFFER_DESC matrixBufferDesc;
 	D3D11_BUFFER_DESC sineBufferDesc;
+	D3D11_BUFFER_DESC lightBufferDesc;
+	D3D11_BUFFER_DESC reflectionBufferDesc;
+	D3D11_BUFFER_DESC waterBufferDesc;
+	D3D11_BUFFER_DESC cameraBufferDesc;
+	
 	D3D11_SAMPLER_DESC samplerDesc;
 
 	// Initialize the pointers this function will use to null.
@@ -186,13 +204,13 @@ bool SineTextureShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, W
 	matrixBufferDesc.MiscFlags = 0;
 	matrixBufferDesc.StructureByteStride = 0;
 
-	// Create the constant buffer pointer so we can access the vertex shader constant buffer from within this class.
 	result = device->CreateBuffer(&matrixBufferDesc, NULL, &m_matrixBuffer);
 	if (FAILED(result))
 	{
 		return false;
 	}
 
+	// Setup the description of the dynamic sine wave constant buffer
 	sineBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
 	sineBufferDesc.ByteWidth = sizeof(SineBufferType);
 	sineBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
@@ -201,6 +219,65 @@ bool SineTextureShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, W
 	sineBufferDesc.StructureByteStride = 0;
 
 	result = device->CreateBuffer(&sineBufferDesc, NULL, &m_sineBuffer);
+	if (FAILED(result))
+	{
+		return false;
+	}
+
+	// Setup the description of the dynamic light constant buffer
+	lightBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	lightBufferDesc.ByteWidth = sizeof(LightBufferType);
+	lightBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	lightBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	lightBufferDesc.MiscFlags = 0;
+	lightBufferDesc.StructureByteStride = 0;
+
+	result = device->CreateBuffer(&lightBufferDesc, NULL, &m_lightBuffer);
+	if (FAILED(result))
+	{
+		return false;
+	}
+
+	// Setup the description of the reflection dynamic constant buffer that is in the vertex shader.
+	reflectionBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	reflectionBufferDesc.ByteWidth = sizeof(ReflectionBufferType);
+	reflectionBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	reflectionBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	reflectionBufferDesc.MiscFlags = 0;
+	reflectionBufferDesc.StructureByteStride = 0;
+
+	// Create the constant buffer pointer so we can access the vertex shader constant buffer from within this class.
+	result = device->CreateBuffer(&reflectionBufferDesc, NULL, &m_reflectionBuffer);
+	if (FAILED(result))
+	{
+		return false;
+	}
+
+	// Setup the description of the water dynamic constant buffer that is in the pixel shader.
+	waterBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	waterBufferDesc.ByteWidth = sizeof(WaterBufferType);
+	waterBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	waterBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	waterBufferDesc.MiscFlags = 0;
+	waterBufferDesc.StructureByteStride = 0;
+
+	// Create the constant buffer pointer so we can access the pixel shader constant buffer from within this class.
+	result = device->CreateBuffer(&waterBufferDesc, NULL, &m_waterBuffer);
+	if (FAILED(result))
+	{
+		return false;
+	}
+
+	// Setup the description of the camera dynamic constant buffer that is in the vertex shader.
+	cameraBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	cameraBufferDesc.ByteWidth = sizeof(CameraBufferType);
+	cameraBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	cameraBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	cameraBufferDesc.MiscFlags = 0;
+	cameraBufferDesc.StructureByteStride = 0;
+
+	// Create the camera constant buffer pointer so we can access the vertex shader constant buffer from within this class.
+	result = device->CreateBuffer(&cameraBufferDesc, NULL, &m_cameraBuffer);
 	if (FAILED(result))
 	{
 		return false;
@@ -239,6 +316,19 @@ void SineTextureShaderClass::ShutdownShader()
 		m_samplerState = 0;
 	}
 
+	if (m_waterBuffer)
+	{
+		m_waterBuffer->Release();
+		m_waterBuffer = 0;
+	}
+
+	// Release the reflection constant buffer.
+	if (m_reflectionBuffer)
+	{
+		m_reflectionBuffer->Release();
+		m_reflectionBuffer = 0;
+	}
+
 	// Release the matrix constant buffer.
 	if (m_matrixBuffer)
 	{
@@ -251,7 +341,19 @@ void SineTextureShaderClass::ShutdownShader()
 		m_sineBuffer->Release();
 		m_sineBuffer = 0;
 	}
-	
+
+	if (m_lightBuffer)
+	{
+		m_lightBuffer->Release();
+		m_lightBuffer = 0;
+	}
+
+	if (m_cameraBuffer)
+	{
+		m_cameraBuffer->Release();
+		m_cameraBuffer = 0;
+	}
+
 	// Release the layout.
 	if (m_layout)
 	{
@@ -311,84 +413,176 @@ void SineTextureShaderClass::OutputShaderErrorMessage(ID3D10Blob* errorMessage, 
 }
 
 bool SineTextureShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext, DirectX::XMMATRIX worldMatrix,
-	DirectX::XMMATRIX viewMatrix, DirectX::XMMATRIX projectionMatrix, ID3D11ShaderResourceView* texture)
+	DirectX::XMMATRIX viewMatrix, DirectX::XMMATRIX projectionMatrix, 
+	DirectX::XMMATRIX reflectionMatrix,
+	ID3D11ShaderResourceView* reflectionTexture, ID3D11ShaderResourceView* refractionTexture,
+	ID3D11ShaderResourceView* normalTexture, float waterTranslation, float reflectRefractScale, 
+	DirectX::XMFLOAT3 lightDirection, DirectX::XMFLOAT4 ambientColor, DirectX::XMFLOAT4 diffuseColor,
+	DirectX::XMFLOAT3 cameraPosition, DirectX::XMFLOAT4 specularColor, float specularPower)
 {
-	cout << "HERE";
-
 	HRESULT result;
-	D3D11_MAPPED_SUBRESOURCE mappedResourceM;
-	D3D11_MAPPED_SUBRESOURCE mappedResourceS;
-	MatrixBufferType* dataMPtr;
-	SineBufferType* dataSPtr;
+	D3D11_MAPPED_SUBRESOURCE mappedResource;
+	
+	MatrixBufferType* dataV0Ptr;
+	ReflectionBufferType* dataV1Ptr;
+	SineBufferType* dataV2Ptr;
+	CameraBufferType* dataV3Ptr;
+
+	LightBufferType* dataP0Ptr; 
+	WaterBufferType* dataP1Ptr;
 
 	// Transpose the matrices to prepare them for the shader.
 	worldMatrix = DirectX::XMMatrixTranspose(worldMatrix);
 	viewMatrix = DirectX::XMMatrixTranspose(viewMatrix);
 	projectionMatrix = DirectX::XMMatrixTranspose(projectionMatrix);
+	reflectionMatrix = DirectX::XMMatrixTranspose(reflectionMatrix);
 
 	// Lock the constant buffer so it can be written to.
-	result = deviceContext->Map(m_matrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResourceM);
+	result = deviceContext->Map(m_matrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	if (FAILED(result))
 	{
 		return false;
 	}
 
 	// Get a pointer to the data in the constant buffer.
-	dataMPtr = (MatrixBufferType*)mappedResourceM.pData;
+	dataV0Ptr = (MatrixBufferType*)mappedResource.pData;
 
 	// Copy the matrices into the constant buffer.
-	dataMPtr->world = worldMatrix;
-	dataMPtr->view = viewMatrix;
-	dataMPtr->projection = projectionMatrix;
+	dataV0Ptr->world = worldMatrix;
+	dataV0Ptr->view = viewMatrix;
+	dataV0Ptr->projection = projectionMatrix;
 
 	// Unlock the constant buffer.
 	deviceContext->Unmap(m_matrixBuffer, 0);
+
+	// Finally set the constant buffer in the vertex shader with the updated values.
+	deviceContext->VSSetConstantBuffers(0, 1, &m_matrixBuffer);
+
+	// Lock the reflection constant buffer so it can be written to.
+	result = deviceContext->Map(m_reflectionBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	if (FAILED(result))
+	{
+		return false;
+	}
+
+	// Get a pointer to the data in the constant buffer.
+	dataV1Ptr = (ReflectionBufferType*)mappedResource.pData;
+
+	// Copy the reflection matrix into the constant buffer.
+	dataV1Ptr->reflection = reflectionMatrix;
+
+	// Unlock the constant buffer.
+	deviceContext->Unmap(m_reflectionBuffer, 0);
+
+	// Finally set the reflection constant buffer in the vertex shader with the updated values.
+	deviceContext->VSSetConstantBuffers(1, 1, &m_reflectionBuffer);
 
 	// Current time
 	FILETIME ft_now;
 	GetSystemTimeAsFileTime(&ft_now);
 	int ll_now = (LONGLONG)ft_now.dwLowDateTime + ((LONGLONG)(ft_now.dwHighDateTime) << 32LL);
 	float st = (ll_now / 10000) % 86400000LL;
-	st /= 1000.0;
-
+	
 	// Lock the constant buffer so it can be written to.
-	result = deviceContext->Map(m_sineBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResourceS);
+	result = deviceContext->Map(m_sineBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	if (FAILED(result))
 	{
 		return false;
 	}
 
 	// Get a pointer to the data in the constant buffer.
-	dataSPtr = (SineBufferType*)mappedResourceS.pData;
+	dataV2Ptr = (SineBufferType*)mappedResource.pData;
 
-	dataSPtr->commonConst =		DirectX::XMFLOAT4(0.0, 0.5, 1.0, 2.0);
-	dataSPtr->waveHeights =		DirectX::XMFLOAT4(2.0, 3.5, 0.25, 0.0);
-	dataSPtr->waveLengths =		DirectX::XMFLOAT4(0.1, 0.3, 0.5, 0.5);
-	dataSPtr->waveOffset =		DirectX::XMFLOAT4(-0.5f, 0.2f, 0.45f, 0.0f);
-	dataSPtr->waveSpeed =		DirectX::XMFLOAT4(0.02, 0.015, 0.04, 0.03);
-	dataSPtr->waveDirx =		DirectX::XMFLOAT4(0.25, 0.0, -0.7, -0.8);
-	dataSPtr->waveDiry =		DirectX::XMFLOAT4(0.0, 0.45, -0.7, 0.1);
-	dataSPtr->bumpSpeed =		DirectX::XMFLOAT4(0.031, 0.04, -0.03, 0.02);
-	dataSPtr->piVector =		DirectX::XMFLOAT4(4.0, 1.57079632, 3.14159265, 6.28318530);
-	dataSPtr->sin7 =			DirectX::XMFLOAT4(1, -0.16161616, 0.0083333, -0.00019841);
-	dataSPtr->cos8 =			DirectX::XMFLOAT4(-0.5, 0.041666666, -0.0013888889, 0.000024801587);
-	dataSPtr->frcFixup =		DirectX::XMFLOAT4(1.02, 0.003, 0, 0);
-	dataSPtr->psCommonConst =	DirectX::XMFLOAT4(0, 0.5, 1, 0.25);
-	dataSPtr->highlightColor =	DirectX::XMFLOAT4(0.8, 0.76, 0.62, 1);
-	dataSPtr->waterColor =		DirectX::XMFLOAT4(0.50, 0.6, 0.7, 1);
-	dataSPtr->time =			DirectX::XMFLOAT4(st, sin(st), st/1000.0, sin(st / 1000.0));
+	dataV2Ptr->commonConst =		DirectX::XMFLOAT4(0.0, 0.5, 1.0, 2.0);
+	dataV2Ptr->waveHeights =		DirectX::XMFLOAT4(0.71, 0.42, 0.25, 0.15);
+	dataV2Ptr->waveLengths =		RandomizeWithTime(DirectX::XMFLOAT4(500, 250, 120, 60), st, rand() % 10);
+	dataV2Ptr->waveSpeed =		DirectX::XMFLOAT4(2.5, 0.75, 1, 3.5);
+	dataV2Ptr->waveDirx =		DirectX::XMFLOAT4(0.85, 0.0, -0.7, -0.8);
+	dataV2Ptr->waveDiry =		DirectX::XMFLOAT4(0.0, 0.15, -0.7, 0.1);
+	dataV2Ptr->Q =				DirectX::XMFLOAT4(0.2, 0.4, 0.2, 0.1);
+	dataV2Ptr->K =				DirectX::XMFLOAT4(2, 3, 2, 3);
+	dataV2Ptr->bumpSpeed =		DirectX::XMFLOAT4(0.031, 0.04, -0.03, 0.02);
+	dataV2Ptr->piVector =		DirectX::XMFLOAT4(4.0, 1.57079632, 3.14159265, 6.28318530);
+	dataV2Ptr->psCommonConst =	DirectX::XMFLOAT4(0, 0.5, 1, 0.25);
+	dataV2Ptr->highlightColor =	DirectX::XMFLOAT4(0.8, 0.76, 0.62, 1);
+	dataV2Ptr->waterColor =		DirectX::XMFLOAT4(0.50, 0.6, 0.7, 1);
+	dataV2Ptr->time =			DirectX::XMFLOAT4(st, sin(st), st/1000.0, sin(st / 1000.0));
 
 	// Unlock the constant buffer.
 	deviceContext->Unmap(m_sineBuffer, 0);
 
 	// Finally set the constant buffer in the vertex shader with the updated values.
-	deviceContext->VSSetConstantBuffers(0, 1, &m_matrixBuffer);
+	deviceContext->VSSetConstantBuffers(2, 1, &m_sineBuffer);
 
-	// Finally set the constant buffer in the vertex shader with the updated values.
-	deviceContext->VSSetConstantBuffers(1, 1, &m_sineBuffer);
+	// Lock the reflection constant buffer so it can be written to.
+	result = deviceContext->Map(m_cameraBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	if (FAILED(result))
+	{
+		return false;
+	}
+
+	// Get a pointer to the data in the constant buffer.
+	dataV3Ptr = (CameraBufferType*)mappedResource.pData;
+
+	// Copy the reflection matrix into the constant buffer.
+	dataV3Ptr->cameraPosition = cameraPosition;
+	dataV3Ptr->padding = 0.0f;
+
+	// Unlock the constant buffer.
+	deviceContext->Unmap(m_cameraBuffer, 0);
+
+	// Finally set the reflection constant buffer in the vertex shader with the updated values.
+	deviceContext->VSSetConstantBuffers(3, 1, &m_cameraBuffer);
+
+	// Lock the light constant buffer so it can be written to.
+	result = deviceContext->Map(m_lightBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	if (FAILED(result))
+	{
+		return false;
+	}
+
+	// Get a pointer to the data in the constant buffer.
+	dataP0Ptr = (LightBufferType*)mappedResource.pData;
+
+	// Copy the lighting variables into the constant buffer.
+	dataP0Ptr->ambientColor = ambientColor;
+	dataP0Ptr->diffuseColor = diffuseColor;
+	dataP0Ptr->lightDirection = lightDirection;
+	dataP0Ptr->specularPower = specularPower;
+	dataP0Ptr->specularColor = specularColor;
+
+	// Unlock the constant buffer.
+	deviceContext->Unmap(m_lightBuffer, 0);
+
+	// Finally set the light constant buffer in the pixel shader with the updated values.
+	deviceContext->PSSetConstantBuffers(0, 1, &m_lightBuffer);
+
+	// Lock the water constant buffer so it can be written to.
+	result = deviceContext->Map(m_waterBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	if (FAILED(result))
+	{
+		return false;
+	}
+
+	// Get a pointer to the data in the constant buffer.
+	dataP1Ptr = (WaterBufferType*)mappedResource.pData;
+
+	// Copy the water data into the constant buffer.
+	dataP1Ptr->waterTranslation = waterTranslation;
+	dataP1Ptr->reflectRefractScale = reflectRefractScale;
+	dataP1Ptr->padding = DirectX::XMFLOAT2(0.0f, 0.0f);
+
+	// Unlock the constant buffer.
+	deviceContext->Unmap(m_waterBuffer, 0);
+
+	// Finally set the water constant buffer in the pixel shader with the updated values.
+	deviceContext->PSSetConstantBuffers(1, 1, &m_waterBuffer);
 
 
-	deviceContext->PSSetShaderResources(0, 1, &texture);
+	// Set the texture resources in the pixel shader.
+	deviceContext->PSSetShaderResources(0, 1, &reflectionTexture);
+	deviceContext->PSSetShaderResources(1, 1, &refractionTexture);
+	deviceContext->PSSetShaderResources(2, 1, &normalTexture);
 
 	return true;
 }
@@ -408,5 +602,11 @@ void SineTextureShaderClass::RenderShader(ID3D11DeviceContext* deviceContext, in
 	deviceContext->DrawIndexed(indexCount, 0, 0);
 
 	return;
+}
+
+DirectX::XMFLOAT4 SineTextureShaderClass::RandomizeWithTime(DirectX::XMFLOAT4 original, float ct, float rand)
+{
+	// TODO: add randomized wave interpolation/fade-in
+	return original;
 }
 

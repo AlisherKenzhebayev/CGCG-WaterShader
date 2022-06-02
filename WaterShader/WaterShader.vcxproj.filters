@@ -57,6 +57,18 @@
     <ClCompile Include="PositionClass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="LightClass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderTextureClass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RefractionShaderClass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CausticShaderClass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ModelClass.h">
@@ -95,15 +107,31 @@
     <ClInclude Include="TimerClass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="LightClass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderTextureClass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RefractionShaderClass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CausticShaderClass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="data\shaders\TexturePS.hlsl" />
     <None Include="data\shaders\ColorPS.hlsl" />
     <None Include="data\shaders\ColorVS.hlsl" />
-    <None Include="data\shaders\TextureVS.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="data\shaders\SimpleSinPS.hlsl" />
     <FxCompile Include="data\shaders\SimpleSinVS.hlsl" />
+    <FxCompile Include="data\shaders\RefractionPS.hlsl" />
+    <FxCompile Include="data\shaders\RefractionVS.hlsl" />
+    <FxCompile Include="data\shaders\TextureVS.hlsl" />
+    <FxCompile Include="data\shaders\TexturePS.hlsl" />
+    <FxCompile Include="data\shaders\CausticPS.hlsl" />
+    <FxCompile Include="data\shaders\CausticVS.hlsl" />
   </ItemGroup>
 </Project>

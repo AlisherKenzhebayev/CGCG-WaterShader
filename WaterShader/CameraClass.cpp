@@ -38,9 +38,9 @@ void CameraClass::SetRotation(float x, float y, float z)
 	return;
 }
 
-DirectX::XMVECTOR CameraClass::GetPosition()
+DirectX::XMFLOAT3 CameraClass::GetPosition()
 {
-	DirectX::XMVECTOR retVal{ m_positionX, m_positionY, m_positionZ };
+	DirectX::XMFLOAT3 retVal{ m_positionX, m_positionY, m_positionZ };
 
 	return retVal;
 }
@@ -89,6 +89,43 @@ void CameraClass::Render()
 	m_viewMatrix = DirectX::XMMatrixLookAtLH(position, lookAt, up);
 
 	return;
+}
+
+void CameraClass::RenderReflection(float height)
+{
+	DirectX::XMVECTOR up{ 0.0f, 1.0f, 0.0f }, position, lookAt{ 0.0f, 0.0f, 1.0f };
+	DirectX::XMMATRIX rotationMatrix;
+	float yaw, pitch, roll; 
+	float radians;
+
+	// Setup the position of the camera in the world.
+	// For planar reflection invert the Y position of the camera.
+	position = { m_positionX, -m_positionY + (height * 2.0f), m_positionZ };
+	
+	// Set the yaw (Y axis), pitch (X axis), and roll (Z axis) rotations in radians.  Invert the X rotation for reflection.
+	pitch = -m_rotationX * 0.0174532925f;
+	yaw = m_rotationY * 0.0174532925f;
+	roll = m_rotationZ * 0.0174532925f;
+
+	// Create the rotation matrix from the yaw, pitch, and roll values.
+	rotationMatrix = DirectX::XMMatrixRotationRollPitchYaw(pitch, yaw, roll);
+
+	// Transform the lookAt and up vector by the rotation matrix so the view is correctly rotated at the origin.
+	lookAt = DirectX::XMVector3TransformCoord(lookAt, rotationMatrix);
+	up = DirectX::XMVector3TransformCoord(up, rotationMatrix);
+
+	// Translate the rotated camera position to the location of the viewer.
+	lookAt = DirectX::XMVectorAdd(position, lookAt);
+
+	// Create the view matrix from the three vectors.
+	m_reflectionViewMatrix = DirectX::XMMatrixLookAtLH(position, lookAt, up);
+
+	return;
+}
+
+DirectX::XMMATRIX CameraClass::GetReflectionViewMatrix()
+{
+	return m_reflectionViewMatrix;
 }
 
 void CameraClass::GetViewMatrix(DirectX::XMMATRIX& viewMatrix)

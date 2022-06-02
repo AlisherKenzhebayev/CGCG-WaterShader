@@ -24,6 +24,8 @@ public:
 	void MoveDownward(bool);
 	void TurnLeft(bool);
 	void TurnRight(bool);
+	void MoveRightSideways(bool);
+	void MoveLeftSideways(bool);
 	void LookUpward(bool);
 	void LookDownward(bool);
 
@@ -37,6 +39,7 @@ private:
 	float m_upwardSpeed, m_downwardSpeed;
 	float m_leftTurnSpeed, m_rightTurnSpeed;
 	float m_lookUpSpeed, m_lookDownSpeed;
+	float m_moveRSideSpeed, m_moveLSideSpeed;
 };
 
 #endif
