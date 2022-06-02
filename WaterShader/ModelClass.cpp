@@ -206,7 +206,7 @@ bool ModelClass::LoadTexture(ID3D11Device* device, WCHAR* filename)
 
 bool ModelClass::LoadModel(std::string fileNameModel) {
 	int vertexCount = 0;
-	float scale = 5;
+	float scale = 1;
 
 	Assimp::Importer importer;
 	const aiScene* model = importer.ReadFile(fileNameModel,
@@ -260,9 +260,9 @@ bool ModelClass::LoadModel(std::string fileNameModel) {
 		{
 			const auto& face = mesh->mFaces[i];
 			assert(face.mNumIndices == 3);
-			m_Indices[3 * i] = { face.mIndices[2] };
+			m_Indices[3 * i] = { face.mIndices[0] };
 			m_Indices[3 * i + 1] = { face.mIndices[1] };
-			m_Indices[3 * i + 2] = { face.mIndices[0] };
+			m_Indices[3 * i + 2] = { face.mIndices[2] };
 		}
 
 		// Checking the data is being read and transferred
