@@ -17,10 +17,13 @@ GraphicsClass::GraphicsClass()
 	m_WallModel = 0;
 	m_BathModel = 0;
 	m_WaterModel = 0;
+	m_CausticGround = 0;
 	m_RefractionTexture = 0;
 	m_ReflectionTexture = 0;
 	m_RefractionShader = 0;
 	m_LightShader = 0;
+
+	m_SunTexture = 0;
 }
 
 
@@ -83,7 +86,7 @@ bool GraphicsClass::Initialize(HINSTANCE hInstance, HWND hwnd, int screenWidth, 
 		return false;
 	}
 
-	result = m_WaterModel->Initialize(m_D3D->GetDevice(), "./data/objects/water2.obj", (WCHAR*)L"./data/textures/rastertek/water01.dds");
+	result = m_WaterModel->Initialize(m_D3D->GetDevice(), "./data/objects/water3.obj", (WCHAR*)L"./data/textures/rastertek/water01.dds");
 	if (!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the water model object.", L"Error", MB_OK);
@@ -97,10 +100,23 @@ bool GraphicsClass::Initialize(HINSTANCE hInstance, HWND hwnd, int screenWidth, 
 		return false;
 	}
 
-	result = m_BathModel->Initialize(m_D3D->GetDevice(), "./data/objects/bath.obj", (WCHAR*)L"./data/textures/rastertek/marble01.dds");
+	result = m_BathModel->Initialize(m_D3D->GetDevice(), "./data/objects/bath2.obj", (WCHAR*)L"./data/textures/rastertek/marble01.dds");
 	if (!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the bath model object.", L"Error", MB_OK);
+		return false;
+	}
+
+	m_CausticGround = new ModelClass;
+	if (!m_CausticGround)
+	{
+		return false;
+	}
+
+	result = m_CausticGround->Initialize(m_D3D->GetDevice(), "./data/objects/groundPlane.obj", (WCHAR*)L"./data/textures/test.dds");
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the caustic model object.", L"Error", MB_OK);
 		return false;
 	}
 
@@ -180,7 +196,7 @@ bool GraphicsClass::Initialize(HINSTANCE hInstance, HWND hwnd, int screenWidth, 
 	m_Light->SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
 	m_Light->SetDirection(1.0f, -1.0f, 1.0f);
 	m_Light->SetSpecularColor(1.0f, 0.85f, 0.64f, 1.0f);
-	m_Light->SetSpecularPower(32.0f);	
+	m_Light->SetSpecularPower(32.0f);
 
 	// Create the refraction render to texture object.
 	m_RefractionTexture = new RenderTextureClass;
@@ -242,7 +258,7 @@ bool GraphicsClass::Initialize(HINSTANCE hInstance, HWND hwnd, int screenWidth, 
 	}
 
 	// Set the height of the water.
-	m_waterHeight = 0.0f;
+	m_waterHeight = 10.0f;
 
 	// Initialize the position of the water.
 	m_waterTranslation = 0.0f;
@@ -257,12 +273,49 @@ bool GraphicsClass::Initialize(HINSTANCE hInstance, HWND hwnd, int screenWidth, 
 	m_Position->SetPosition(cameraX, cameraY, cameraZ);
 	m_Position->SetRotation(cameraRotX, cameraRotY, cameraRotZ);
 
+
+	// Create the shader object.
+	m_CausticShader = new CausticShaderClass;
+	if (!m_CausticShader)
+	{
+		return false;
+	}
+
+	result = m_CausticShader->Initialize(m_D3D->GetDevice(), hwnd);
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the caustic shader object.", L"Error", MB_OK);
+		return false;
+	}
+
+	// Create the texture object.
+	m_SunTexture = new TextureClass;
+	if (!m_SunTexture)
+	{
+		return false;
+	}
+
+	// Initialize the texture object.
+	result = m_SunTexture->Initialize(m_D3D->GetDevice(), (WCHAR*)L"./data/textures/test.dds");
+	if (!result)
+	{
+		return false;
+	}
+
 	return true;
 }
 
 
 void GraphicsClass::Shutdown()
 {
+	// Release the sun map texture
+	if (m_SunTexture)
+	{
+		m_SunTexture->Shutdown();
+		delete m_SunTexture;
+		m_SunTexture = 0;
+	}
+
 	// Release the reflection render to texture object.
 	if (m_ReflectionTexture)
 	{
@@ -330,6 +383,12 @@ void GraphicsClass::Shutdown()
 		m_WaterModel->Shutdown();
 		delete m_WaterModel;
 		m_WaterModel = 0;
+	}
+	if (m_CausticGround)
+	{
+		m_CausticGround->Shutdown();
+		delete m_CausticGround;
+		m_CausticGround = 0;
 	}
 	if (m_BathModel)
 	{
@@ -467,6 +526,19 @@ bool GraphicsClass::RenderRefractionToTexture()
 	result = m_RefractionShader->Render(m_D3D->GetDeviceContext(), m_BathModel->GetIndexCount(), worldMatrix, viewMatrix,
 		projectionMatrix, m_BathModel->GetTexture(), m_Light->GetDirection(),
 		m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(), clipPlane);
+	if (!result)
+	{
+		return false;
+	}
+
+	m_CausticGround->Render(m_D3D->GetDeviceContext());
+
+	result = m_CausticShader->Render(m_D3D->GetDeviceContext(), m_CausticGround->GetIndexCount(), worldMatrix, viewMatrix,
+		projectionMatrix,
+		m_SunTexture->GetTexture(),
+		m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(),
+		m_Camera->GetPosition(),
+		m_Light->GetSpecularColor(), m_Light->GetSpecularPower());
 	if (!result)
 	{
 		return false;

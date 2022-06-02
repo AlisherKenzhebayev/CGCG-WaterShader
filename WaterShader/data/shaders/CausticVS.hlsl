@@ -6,12 +6,7 @@ cbuffer MatrixBuffer : register(b0)
     matrix projectionMatrix;
 };
 
-cbuffer ReflectionBuffer : register(b1)
-{
-    matrix reflectionMatrix;
-};
-
-cbuffer SineBuffer : register(b2)
+cbuffer SineBuffer : register(b1)
 {
     float4 commonConst;
     float4 waveHeights;
@@ -29,7 +24,7 @@ cbuffer SineBuffer : register(b2)
     float4 time;
 };
 
-cbuffer CameraBuffer : register(b3)
+cbuffer CameraBuffer : register(b2)
 {
     float3 cameraPosition;
     float padding3;
@@ -47,9 +42,6 @@ struct PixelInputType
     float4 position : SV_POSITION;
     float3 normal : NORMAL;
     float2 texUV : TEXCOORD0;
-    float4 reflectionPosition : TEXCOORD1;
-    float4 refractionPosition : TEXCOORD2;
-    float depth : TEXCOORD3;
     float3 viewDirection : TEXCOORD4;
 };
 
@@ -58,10 +50,10 @@ float4 CalcQ(float4 Q, float4 freq, float4 ampl)
     return Q / (freq * ampl);
 }
 
-PixelInputType SimpleSinVertexShader(VertexInputType input)
+PixelInputType CausticVertexShader(VertexInputType input)
 {
     PixelInputType output;
-    float4 worldPosition; 
+    float4 worldPosition;
     matrix reflectProjectWorld;
     matrix viewProjectWorld;
     
@@ -105,7 +97,7 @@ PixelInputType SimpleSinVertexShader(VertexInputType input)
     float4 position = input.position;
     
     position.x = position.x + calcX;
-    position.y = position.y + dot(sinValue, waveHeight);
+    //position.y = position.y + dot(sinValue, waveHeight);
     position.z = position.z + calcY;
     
     // Calculate the position of the vertex against the world, view, and projection matrices.
@@ -145,24 +137,8 @@ PixelInputType SimpleSinVertexShader(VertexInputType input)
     output.normal = mul(output.normal, (float3x3) worldMatrix);
     output.normal = normalize(output.normal);
     output.texUV = input.texUV;
-    output.depth = input.position.y;
     
-    // Calculate reflections and refractions
-    // Create the reflection projection world matrix.
-    reflectProjectWorld = mul(reflectionMatrix, projectionMatrix);
-    reflectProjectWorld = mul(worldMatrix, reflectProjectWorld);
-
-    // Calculate the input position against the reflectProjectWorld matrix.
-    output.reflectionPosition = mul(input.position, reflectProjectWorld);
-    
-    // Create the view projection world matrix for refraction.
-    viewProjectWorld = mul(viewMatrix, projectionMatrix);
-    viewProjectWorld = mul(worldMatrix, viewProjectWorld);
-   
-    // Calculate the input position against the viewProjectWorld matrix.
-    output.refractionPosition = mul(input.position, viewProjectWorld);
-    
-    // Calculating view direction from the world position and camera information
+    // Calculating view direction from the world position and camera information (for specular)
     worldPosition = mul(input.position, worldMatrix);
     output.viewDirection = cameraPosition.xyz - worldPosition.xyz;
     output.viewDirection = normalize(output.viewDirection);

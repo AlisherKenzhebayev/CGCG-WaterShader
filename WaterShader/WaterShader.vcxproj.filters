@@ -66,6 +66,9 @@
     <ClCompile Include="RefractionShaderClass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="CausticShaderClass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ModelClass.h">
@@ -113,6 +116,9 @@
     <ClInclude Include="RefractionShaderClass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="CausticShaderClass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="data\shaders\ColorPS.hlsl" />
@@ -125,5 +131,7 @@
     <FxCompile Include="data\shaders\RefractionVS.hlsl" />
     <FxCompile Include="data\shaders\TextureVS.hlsl" />
     <FxCompile Include="data\shaders\TexturePS.hlsl" />
+    <FxCompile Include="data\shaders\CausticPS.hlsl" />
+    <FxCompile Include="data\shaders\CausticVS.hlsl" />
   </ItemGroup>
 </Project>

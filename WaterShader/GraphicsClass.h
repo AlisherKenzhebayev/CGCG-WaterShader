@@ -10,6 +10,7 @@
 #include "timerclass.h"
 #include "positionclass.h"
 #include "sinetextureshaderclass.h"
+#include "causticshaderclass.h"
 #include "RenderTextureClass.h"
 #include "RefractionShaderClass.h"
 #include "TextureShaderClass.h"
@@ -46,15 +47,18 @@ private:
 	CameraClass* m_Camera;
 	PositionClass* m_Position;
 	
-	ModelClass* m_GroundModel, * m_WallModel, * m_BathModel, * m_WaterModel;
+	ModelClass* m_GroundModel, * m_WallModel, * m_BathModel, * m_WaterModel, * m_CausticGround;
 	RenderTextureClass* m_RefractionTexture, * m_ReflectionTexture;
 	RefractionShaderClass* m_RefractionShader;
 	TextureShaderClass* m_LightShader;
 	float m_waterHeight, m_waterTranslation;
 
 	SineTextureShaderClass* m_Shader;
+	CausticShaderClass* m_CausticShader;
 	TimerClass* m_Timer;
 	LightClass* m_Light;
+
+	TextureClass* m_SunTexture;
 };
 
 #endif

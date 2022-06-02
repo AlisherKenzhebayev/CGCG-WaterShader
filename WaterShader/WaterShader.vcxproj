@@ -167,6 +167,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="CameraClass.cpp" />
+    <ClCompile Include="CausticShaderClass.cpp" />
     <ClCompile Include="D3D.cpp" />
     <ClCompile Include="ColorShaderClass.cpp" />
     <ClCompile Include="LightClass.cpp" />
@@ -186,6 +187,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CameraClass.h" />
+    <ClInclude Include="CausticShaderClass.h" />
     <ClInclude Include="D3dclass.h" />
     <ClInclude Include="ColorShaderClass.h" />
     <ClInclude Include="LightClass.h" />
@@ -204,6 +206,14 @@
   <ItemGroup>
     <None Include="data\shaders\ColorPS.hlsl" />
     <None Include="data\shaders\ColorVS.hlsl" />
+    <FxCompile Include="data\shaders\CausticPS.hlsl">
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CausticPixelShader</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="data\shaders\CausticVS.hlsl">
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CausticVertexShader</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+    </FxCompile>
     <FxCompile Include="data\shaders\TexturePS.hlsl">
       <FileType>Document</FileType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TexturePixelShader</EntryPointName>
