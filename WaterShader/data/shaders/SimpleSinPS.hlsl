@@ -95,7 +95,7 @@ float4 SimpleSinPixelShader(PixelInputType input) : SV_TARGET
     
     normalMap = normalTexture.Sample(SampleType, input.texUV);
     normalVec = (normalMap.xyz * 2.0f) - 1.0f; //TODO: use/mix with normal map from the texture!
-    normal = lerp(input.normal, normalVec, 0.0f);
+    normal = lerp(input.normal, normalVec, 0.3f);
     
     // Re-position the texture coordinate sampling position by the normal map value to simulate the rippling wave effect.
     reflectTexCoord = reflectTexCoord + (normal.xy * reflectRefractScale);
@@ -107,7 +107,7 @@ float4 SimpleSinPixelShader(PixelInputType input) : SV_TARGET
     
     // Combine the reflection and refraction results for the final color.
     // TODO: Add contribution from both to the mixed color.
-    envColor = lerp(reflectionColor, refractionColor, 0.3f);
+    envColor = lerp(reflectionColor, refractionColor, 0.4f);
     
     // TODO: Add fresnel/schlick approximation
     textureColor = lerp(colorL1, colorL2, 0.5f);
@@ -128,7 +128,7 @@ float4 SimpleSinPixelShader(PixelInputType input) : SV_TARGET
     specular = pow(max(dot(input.viewDirection, reflectDir), 0.0f), specularPower) * specularColor;
         
     
-    color = color * envColor;// * textureColor;
+    color = color * envColor * textureColor;
 
     color = saturate(color + specular);
     

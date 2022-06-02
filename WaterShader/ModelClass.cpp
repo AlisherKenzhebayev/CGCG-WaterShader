@@ -209,15 +209,18 @@ bool ModelClass::LoadModel(std::string fileNameModel) {
 	float scale = 1;
 
 	Assimp::Importer importer;
+
 	const aiScene* model = importer.ReadFile(fileNameModel,
 		aiProcess_Triangulate
 		| aiProcess_JoinIdenticalVertices);
+	
 	if (model == NULL)
 	{
 #ifdef _DEBUG
 		std::ofstream fout;
 		fout.open("model-error.txt");
-		fout << "Model Error " + (std::string)importer.GetErrorString() + " in file " + fileNameModel;
+		fout << "Model Error " + (std::string)
+			importer.GetErrorString() + " in file " + fileNameModel;
 		fout.close();
 #endif
 		return false;
