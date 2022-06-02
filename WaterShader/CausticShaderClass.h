@@ -72,6 +72,7 @@ public:
 	bool Render(ID3D11DeviceContext*, int, DirectX::XMMATRIX,
 		DirectX::XMMATRIX, DirectX::XMMATRIX,
 		ID3D11ShaderResourceView*,
+		ID3D11ShaderResourceView*,
 		DirectX::XMFLOAT3, DirectX::XMFLOAT4, DirectX::XMFLOAT4,
 		DirectX::XMFLOAT3 cameraPosition, DirectX::XMFLOAT4 specularColor, float specularPower);
 
@@ -82,6 +83,7 @@ private:
 
 	bool SetShaderParameters(ID3D11DeviceContext* deviceContext, DirectX::XMMATRIX worldMatrix,
 		DirectX::XMMATRIX viewMatrix, DirectX::XMMATRIX projectionMatrix,
+		ID3D11ShaderResourceView* baseTexture,
 		ID3D11ShaderResourceView* sunTexture,
 		DirectX::XMFLOAT3 lightDirection, DirectX::XMFLOAT4 ambientColor, DirectX::XMFLOAT4 diffuseColor,
 		DirectX::XMFLOAT3 cameraPosition, DirectX::XMFLOAT4 specularColor, float specularPower);

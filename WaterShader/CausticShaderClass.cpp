@@ -48,6 +48,7 @@ void CausticShaderClass::Shutdown()
 
 bool CausticShaderClass::Render(ID3D11DeviceContext* deviceContext, int indexCount, DirectX::XMMATRIX worldMatrix,
 	DirectX::XMMATRIX viewMatrix, DirectX::XMMATRIX projectionMatrix,
+	ID3D11ShaderResourceView* baseTexture,
 	ID3D11ShaderResourceView* sunTexture,
 	DirectX::XMFLOAT3 lightDirection, DirectX::XMFLOAT4 ambientColor, DirectX::XMFLOAT4 diffuseColor,
 	DirectX::XMFLOAT3 cameraPosition, DirectX::XMFLOAT4 specularColor, float specularPower)
@@ -56,6 +57,7 @@ bool CausticShaderClass::Render(ID3D11DeviceContext* deviceContext, int indexCou
 
 	result = SetShaderParameters(deviceContext, worldMatrix, 
 		viewMatrix, projectionMatrix,
+		baseTexture,
 		sunTexture,
 		lightDirection, ambientColor, diffuseColor,
 		cameraPosition, specularColor, specularPower);
@@ -366,6 +368,7 @@ void CausticShaderClass::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND
 
 bool CausticShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext, DirectX::XMMATRIX worldMatrix,
 	DirectX::XMMATRIX viewMatrix, DirectX::XMMATRIX projectionMatrix,
+	ID3D11ShaderResourceView* baseTexture,
 	ID3D11ShaderResourceView* sunTexture,
 	DirectX::XMFLOAT3 lightDirection, DirectX::XMFLOAT4 ambientColor, DirectX::XMFLOAT4 diffuseColor,
 	DirectX::XMFLOAT3 cameraPosition, DirectX::XMFLOAT4 specularColor, float specularPower)
@@ -486,7 +489,9 @@ bool CausticShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext,
 	deviceContext->PSSetConstantBuffers(0, 1, &m_lightBuffer);
 
 	// Set the texture resources in the pixel shader.
-	deviceContext->PSSetShaderResources(0, 1, &sunTexture);
+	deviceContext->PSSetShaderResources(0, 1, &baseTexture);
+	// Set the texture resources in the pixel shader.
+	deviceContext->PSSetShaderResources(1, 1, &sunTexture);
 	
 	return true;
 }

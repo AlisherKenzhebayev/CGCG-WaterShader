@@ -296,7 +296,7 @@ bool GraphicsClass::Initialize(HINSTANCE hInstance, HWND hwnd, int screenWidth, 
 	}
 
 	// Initialize the texture object.
-	result = m_SunTexture->Initialize(m_D3D->GetDevice(), (WCHAR*)L"./data/textures/test.dds");
+	result = m_SunTexture->Initialize(m_D3D->GetDevice(), (WCHAR*)L"./data/textures/sun.dds");
 	if (!result)
 	{
 		return false;
@@ -514,10 +514,6 @@ bool GraphicsClass::RenderRefractionToTexture()
 	m_D3D->GetWorldMatrix(worldMatrix);
 	m_Camera->GetViewMatrix(viewMatrix);
 	m_D3D->GetProjectionMatrix(projectionMatrix);
-
-	// Translate to where the bath model will be rendered.
-	//DirectX::XMMATRIX translationMatrix = DirectX::XMMatrixTranslation(0.0f, 2.0f, 0.0f);
-	//worldMatrix = DirectX::XMMatrixMultiply(worldMatrix, translationMatrix);
 	
 	// Put the bath model vertex and index buffers on the graphics pipeline to prepare them for drawing.
 	m_BathModel->Render(m_D3D->GetDeviceContext());
@@ -535,6 +531,7 @@ bool GraphicsClass::RenderRefractionToTexture()
 
 	result = m_CausticShader->Render(m_D3D->GetDeviceContext(), m_CausticGround->GetIndexCount(), worldMatrix, viewMatrix,
 		projectionMatrix,
+		m_CausticGround->GetTexture(),
 		m_SunTexture->GetTexture(),
 		m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(),
 		m_Camera->GetPosition(),
@@ -570,10 +567,6 @@ bool GraphicsClass::RenderReflectionToTexture()
 	// Get the world and projection matrices from the d3d object.
 	m_D3D->GetWorldMatrix(worldMatrix);
 	m_D3D->GetProjectionMatrix(projectionMatrix);
-
-	// Translate to where the wall model will be rendered.
-	//DirectX::XMMATRIX translationMatrix = DirectX::XMMatrixTranslation(0.0f, 6.0f, 8.0f);
-	//worldMatrix = DirectX::XMMatrixMultiply(worldMatrix, translationMatrix);
 
 	// Put the wall model vertex and index buffers on the graphics pipeline to prepare them for drawing.
 	m_WallModel->Render(m_D3D->GetDeviceContext());

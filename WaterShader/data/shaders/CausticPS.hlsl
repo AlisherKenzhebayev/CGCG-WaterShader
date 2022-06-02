@@ -1,3 +1,4 @@
+Texture2D shaderTexture;
 Texture2D sunTexture;
 SamplerState SampleType;
 
@@ -36,6 +37,7 @@ float4 CausticPixelShader(PixelInputType input) : SV_TARGET
     float fixedDepth = 20.0f;
     
     float4 textureColor;
+    float4 sunColor;
     
     float3 lightDir;
     float3 reflectDir;
@@ -68,10 +70,12 @@ float4 CausticPixelShader(PixelInputType input) : SV_TARGET
     //normalVec = (normalMap.xyz * 2.0f) - 1.0f; //TODO: use/mix with normal map from the texture!
     //normal = lerp(input.normal, normalVec, 0.0f);
     
-    textureColor = sunTexture.Sample(SampleType, input.texUV);
+    textureColor = shaderTexture.Sample(SampleType, input.texUV);
+    
+    sunColor = sunTexture.Sample(SampleType, input.texUV);
     
     // Calculate the amount of light on this pixel.
-    lightIntensity = saturate(dot(input.normal, lightDir));
+    lightIntensity = saturate(dot(float3(0,1,0), lightDir));
     
     if (lightIntensity > 0.0f)
     {
@@ -86,9 +90,9 @@ float4 CausticPixelShader(PixelInputType input) : SV_TARGET
     specular = pow(max(dot(input.viewDirection, reflectDir), 0.0f), specularPower) * specularColor;
         
     
-    color = color * textureColor;
+    color = color * textureColor * sunColor;
 
-    color = saturate(color + specular);
+    color = saturate(color);
     
     //color = float4(input.position.xz / 255, 1.0f, 1.0f);    
     //color = float4(input.normal, 1.0f);    
