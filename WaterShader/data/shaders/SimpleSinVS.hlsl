@@ -29,6 +29,11 @@ cbuffer SineBuffer : register(b2)
     float4 time;
 };
 
+cbuffer CameraBuffer : register(b3)
+{
+    float3 cameraPosition;
+    float padding3;
+}
 
 struct VertexInputType
 {
@@ -45,6 +50,7 @@ struct PixelInputType
     float4 reflectionPosition : TEXCOORD1;
     float4 refractionPosition : TEXCOORD2;
     float depth : TEXCOORD3;
+    float3 viewDirection : TEXCOORD4;
 };
 
 float4 CalcQ(float4 Q, float4 freq, float4 ampl)
@@ -52,9 +58,75 @@ float4 CalcQ(float4 Q, float4 freq, float4 ampl)
     return Q / (freq * ampl);
 }
 
+// Bothered from https://gamedev.net/forums/topic/687501-how-to-compute-normal-vectors-for-gerstner-waves/5337678/
+float3 GerstnerWaveTessendorf(float aTime, float waveLength, float speed, float amplitude, float steepness, float2 direction, in float3 position)
+{
+  //  float L = waveLength; // wave crest to crest length in metres
+ //   float A = amplitude; // amplitude - wave height (crest to trough)
+    float k = 2.0 * 3.1416 / waveLength; // wave length
+    float kA = k * amplitude;
+    float2 D = normalize(direction); // normalized direction
+    float2 K = D * k; // wave vector and magnitude (direction)
+    
+
+    // peak/crest steepness high means steeper, but too much 
+    // can cause the wave to become inside out at the top
+  //  float Q = steepness; //max(steepness, 0.1); 
+
+    // Original formula, however is more difficult to control speed
+    //float w = sqrt(9.82*k); // frequency (speed)
+    //float wt = w*Time;
+    
+    float S = speed * 0.5; // Speed 1 =~ 2m/s so halve first
+    float w = S * k; // Phase/frequency
+    float wT = w * aTime;
+
+    // Unoptimized:
+    // float2 xz = position.xz - K/k*Q*A*sin(dot(K,position.xz)- wT);
+    // float y = A*cos(dot(K,position.xz)- wT);
+
+    // Calculate once instead of 4 times
+    float KPwT = dot(K, position.xz) - wT;
+    float S0 = sin(KPwT);
+    float C0 = cos(KPwT);
+
+    // Calculate the vertex offset along the X and Z axes
+    float2 xz = position.xz - D * steepness * amplitude * S0;
+    // Calculate the vertex offset along the Y (up/down) axis
+    float y = amplitude * C0;
+
+    // Calculate the tangent/bitangent/normal
+    // Bitangent
+    float3 B = float3(
+        1 - (steepness * D.x * D.x * kA * C0),
+        D.x * kA * S0,
+        -(steepness * D.x * D.y * kA * C0));
+    // Tangent
+    float3 T = float3(
+        -(steepness * D.x * D.y * kA * C0),
+        D.y * kA * S0,
+        1 - (steepness * D.y * D.y * kA * C0)
+        );
+
+    B = normalize(B);
+    T = normalize(T);
+    float3 N = cross(T, B);
+
+    return N;
+    
+    //// Append the results
+    //result.xz += xz;
+    //result.y += y;
+    //normal += N;
+ 
+    //tangent += T;
+    //bitangent += B;
+}
+
 PixelInputType SimpleSinVertexShader(VertexInputType input)
 {
     PixelInputType output;
+    float4 worldPosition; 
     matrix reflectProjectWorld;
     matrix viewProjectWorld;
     
@@ -94,7 +166,6 @@ PixelInputType SimpleSinVertexShader(VertexInputType input)
     float4 calcY = (cosValue * waveDiry);
     calcY = dot(valSteepness, calcY);
     
-    
     // Vertex displacement
     float4 position = input.position;
     
@@ -118,21 +189,24 @@ PixelInputType SimpleSinVertexShader(VertexInputType input)
     
     float3 binormal = float3(
         1 - dot(Qi, pow(waveDirx, 2) * WA * S), 
-        -dot(Qi, waveDirx * waveDiry * WA * S),
-        dot(waveDirx, WA * C));
+        dot(waveDirx, WA * C),
+        -dot(Qi, waveDirx * waveDiry * WA * S));
     float3 tangent = float3(
         -dot(Qi, waveDirx * waveDiry * WA * S),
-        1 - dot(Qi, pow(waveDiry, 2) * WA * S),
-        dot(waveDiry, WA * C));
+        dot(waveDiry, WA * C),
+        1 - dot(Qi, pow(waveDiry, 2) * WA * S));
     float3 normal = float3(
         -dot(waveDirx, WA * C),
-        -dot(waveDiry, WA * C),
-        1 - dot(Qi, WA * S));
+        1 - dot(Qi, WA * S),
+        -dot(waveDiry, WA * C));
     
-    float3 normalCalc = normal;//cross(binormal, tangent);
+    binormal = normalize(binormal);
+    tangent = normalize(tangent);
+    
+    float3 normalCalc = cross(tangent, binormal);
     
     // Switch y and z..
-    output.normal = float3(normalCalc.x, normalCalc.z, normalCalc.y);
+    output.normal = normalCalc; //float3(normalCalc.x, -normalCalc.y, normalCalc.z);
     output.normal = mul(output.normal, (float3x3) worldMatrix);
     output.normal = normalize(output.normal);
     output.texUV = input.texUV;
@@ -152,6 +226,30 @@ PixelInputType SimpleSinVertexShader(VertexInputType input)
    
     // Calculate the input position against the viewProjectWorld matrix.
     output.refractionPosition = mul(input.position, viewProjectWorld);
+    
+    // Calculating view direction from the world position and camera information
+    worldPosition = mul(input.position, worldMatrix);
+    output.viewDirection = cameraPosition.xyz - worldPosition.xyz;
+    output.viewDirection = normalize(output.viewDirection);
+    
+    // Recompute normals again
+    
+    //float3 normalOut = float3(0, 0, 0);
+    //float3 tangentOut = float3(0, 0, 0);
+    //float3 bitangentOut = float3(0, 0, 0);
+    
+    //normalOut += GerstnerWaveTessendorf(time.z, waveLengths.x, waveSpeed.x, waveHeight.x, Qi.x, 
+    //float2(waveDirx.x, waveDiry.x), input.position.xyz);
+    //normalOut += GerstnerWaveTessendorf(time.z, waveLengths.y, waveSpeed.y, waveHeight.y, Qi.y,
+    //float2(waveDirx.y, waveDiry.y), input.position.xyz);
+    //normalOut += GerstnerWaveTessendorf(time.z, waveLengths.z, waveSpeed.z, waveHeight.z, Qi.z,
+    //float2(waveDirx.z, waveDiry.z), input.position.xyz);
+    //normalOut += GerstnerWaveTessendorf(time.z, waveLengths.w, waveSpeed.w, waveHeight.w, Qi.w,
+    //float2(waveDirx.w, waveDiry.w), input.position.xyz);
+    
+    //output.normal = normalOut;
+    //output.normal = mul(output.normal, (float3x3) worldMatrix);
+    //output.normal = normalize(output.normal);
     
     return output;
 }

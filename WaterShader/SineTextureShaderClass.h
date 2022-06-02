@@ -25,6 +25,13 @@ private:
 		DirectX::XMFLOAT4 ambientColor;
 		DirectX::XMFLOAT4 diffuseColor;
 		DirectX::XMFLOAT3 lightDirection;
+		float specularPower;
+		DirectX::XMFLOAT4 specularColor;
+	};
+
+	struct CameraBufferType
+	{
+		DirectX::XMFLOAT3 cameraPosition;
 		float padding;
 	};
 
@@ -78,7 +85,8 @@ public:
 		DirectX::XMMATRIX,
 		ID3D11ShaderResourceView*, ID3D11ShaderResourceView*,
 		ID3D11ShaderResourceView*, float, float, 
-		DirectX::XMFLOAT3, DirectX::XMFLOAT4, DirectX::XMFLOAT4);
+		DirectX::XMFLOAT3, DirectX::XMFLOAT4, DirectX::XMFLOAT4,
+		DirectX::XMFLOAT3 cameraPosition, DirectX::XMFLOAT4 specularColor, float specularPower);
 
 private:
 	bool InitializeShader(ID3D11Device*, HWND, WCHAR*, WCHAR*);
@@ -90,7 +98,8 @@ private:
 		DirectX::XMMATRIX reflectionMatrix,
 		ID3D11ShaderResourceView* reflectionTexture, ID3D11ShaderResourceView* refractionTexture,
 		ID3D11ShaderResourceView* normalTexture, float waterTranslation, float reflectRefractScale,
-		DirectX::XMFLOAT3 lightDirection, DirectX::XMFLOAT4 ambientColor, DirectX::XMFLOAT4 diffuseColor);
+		DirectX::XMFLOAT3 lightDirection, DirectX::XMFLOAT4 ambientColor, DirectX::XMFLOAT4 diffuseColor,
+		DirectX::XMFLOAT3 cameraPosition, DirectX::XMFLOAT4 specularColor, float specularPower);
 
 	void RenderShader(ID3D11DeviceContext*, int);
 
@@ -105,6 +114,7 @@ private:
 	ID3D11Buffer* m_lightBuffer;
 	ID3D11Buffer* m_reflectionBuffer;
 	ID3D11Buffer* m_waterBuffer;
+	ID3D11Buffer* m_cameraBuffer;
 
 	ID3D11SamplerState* m_samplerState;
 };

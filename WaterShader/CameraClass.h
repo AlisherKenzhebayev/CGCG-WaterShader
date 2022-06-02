@@ -13,7 +13,7 @@ public:
 	void SetPosition(float, float, float);
 	void SetRotation(float, float, float);
 
-	DirectX::XMVECTOR GetPosition();
+	DirectX::XMFLOAT3 GetPosition();
 	DirectX::XMVECTOR GetRotation();
 
 	void Render();

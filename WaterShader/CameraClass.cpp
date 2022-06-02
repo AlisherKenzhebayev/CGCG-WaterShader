@@ -38,9 +38,9 @@ void CameraClass::SetRotation(float x, float y, float z)
 	return;
 }
 
-DirectX::XMVECTOR CameraClass::GetPosition()
+DirectX::XMFLOAT3 CameraClass::GetPosition()
 {
-	DirectX::XMVECTOR retVal{ m_positionX, m_positionY, m_positionZ };
+	DirectX::XMFLOAT3 retVal{ m_positionX, m_positionY, m_positionZ };
 
 	return retVal;
 }

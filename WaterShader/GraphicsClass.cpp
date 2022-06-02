@@ -179,6 +179,8 @@ bool GraphicsClass::Initialize(HINSTANCE hInstance, HWND hwnd, int screenWidth, 
 	//m_Light->SetDiffuseColor(1.0f, 0.35f, 0.32f, 1.0f);
 	m_Light->SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
 	m_Light->SetDirection(1.0f, -1.0f, 1.0f);
+	m_Light->SetSpecularColor(1.0f, 0.85f, 0.64f, 1.0f);
+	m_Light->SetSpecularPower(32.0f);	
 
 	// Create the refraction render to texture object.
 	m_RefractionTexture = new RenderTextureClass;
@@ -644,7 +646,9 @@ bool GraphicsClass::RenderScene()
 		m_ReflectionTexture->GetShaderResourceView(),
 		m_RefractionTexture->GetShaderResourceView(),
 		m_WaterModel->GetTexture(), m_waterTranslation, 0.01f,
-		m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor());
+		m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(), 
+		m_Camera->GetPosition(),
+		m_Light->GetSpecularColor(), m_Light->GetSpecularPower());
 	if (!result)
 	{
 		return false;
