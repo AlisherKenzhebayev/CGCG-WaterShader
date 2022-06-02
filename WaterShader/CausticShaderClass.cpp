@@ -428,7 +428,7 @@ bool CausticShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext,
 	dataV1Ptr->waveHeights = DirectX::XMFLOAT4(0.71, 0.42, 0.25, 0.15);
 	dataV1Ptr->waveLengths = RandomizeWithTime(DirectX::XMFLOAT4(500, 250, 120, 60), st, rand() % 10);
 	dataV1Ptr->waveSpeed = DirectX::XMFLOAT4(2.5, 0.75, 1, 3.5);
-	dataV1Ptr->waveDirx = DirectX::XMFLOAT4(0.25, 0.0, -0.7, -0.8);
+	dataV1Ptr->waveDirx = DirectX::XMFLOAT4(0.85, 0.0, -0.7, -0.8);
 	dataV1Ptr->waveDiry = DirectX::XMFLOAT4(0.0, 0.15, -0.7, 0.1);
 	dataV1Ptr->Q = DirectX::XMFLOAT4(0.2, 0.4, 0.2, 0.1);
 	dataV1Ptr->K = DirectX::XMFLOAT4(2, 3, 2, 3);

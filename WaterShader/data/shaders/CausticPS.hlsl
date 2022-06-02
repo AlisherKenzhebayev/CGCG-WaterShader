@@ -14,9 +14,11 @@ cbuffer LightBuffer : register(b0)
 struct PixelInputType
 {
     float4 position : SV_POSITION;
+    float4 worldPosition : TEXCOORD3;
     float3 normal : NORMAL;
     float2 texUV : TEXCOORD0;
-    float3 viewDirection : TEXCOORD4;
+    float3 viewDirection : TEXCOORD1;
+    float time : TEXCOORD2;
 };
 
 float3 reflect(float3 I, float3 N)
@@ -24,20 +26,55 @@ float3 reflect(float3 I, float3 N)
     return normalize(I - 2.0 * dot(N, I) * N);
 }
 
+const float kRefractionAir = 1.0; // Real world: 1.000293
+const float kRefractionWater = 1.333;
+
+float3 line_plane_intercept(float3 lineP, float3 lineN, float3 planeN, float planeD)
+{
+    // Unoptimized
+    float distance = (planeD - dot(planeN, lineP)) / dot(lineN, planeN);
+    // Optimized (assumes planeN always points up)
+    //float distance = (planeD - lineP.y) / lineN.y;
+    return lineP + lineN * distance;
+}
+
+#define VTXSIZE 0.1f    // Amplitude
+#define WAVESIZE 5.0f   // Frequency
+#define FACTOR 1.0f
+#define SPEED 1.0f
+#define OCTAVES 2
+float2 gradwave(float x, float y, float timer)
+{
+    float dZx = 0.0f;
+    float dZy = 0.0f;
+    float octaves = OCTAVES;
+    float factor = FACTOR;
+    float d = sqrt(x * x + y * y);
+
+    do
+    {
+        dZx += d * sin(timer * SPEED + (1 / factor) * x * y * WAVESIZE) * y * WAVESIZE;
+        -factor * cos(timer * SPEED + (1 / factor) * x * y * WAVESIZE) * x / d;
+        dZy += d * sin(timer * SPEED + (1 / factor) * x * y * WAVESIZE) * x * WAVESIZE;
+        -factor * cos(timer * SPEED + (1 / factor) * x * y * WAVESIZE) * y / d;
+        factor = factor / 2;
+        octaves--;
+    } while (octaves > 0);
+
+    return float2(2 * VTXSIZE * dZx, 2 * VTXSIZE * dZy);
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // Pixel Shader
 ////////////////////////////////////////////////////////////////////////////////
 float4 CausticPixelShader(PixelInputType input) : SV_TARGET
-{
-    float4 colorL1 = float4(15, 94, 156, 255);
-    colorL1 /= 255;
-    float4 colorL2 = float4(116, 204, 244, 255);
-    colorL2 /= 255;
+{    
+    float kAir2Water = kRefractionAir / kRefractionWater;
+    float kWater2Air = kRefractionWater / kRefractionAir;
     
     float fixedDepth = 20.0f;
     
     float4 textureColor;
-    float4 sunColor;
     
     float3 lightDir;
     float3 reflectDir;
@@ -53,6 +90,10 @@ float4 CausticPixelShader(PixelInputType input) : SV_TARGET
     // INITIALIZATIONS
     // ----------------------
 
+    //input.position.y += fixedDepth;
+    
+    
+    
     normal = input.normal;
     
     color = ambientColor;
@@ -66,13 +107,12 @@ float4 CausticPixelShader(PixelInputType input) : SV_TARGET
     // CALCULATIONS
     // ----------------------
     
-    //normalMap = normalTexture.Sample(SampleType, input.texUV);
-    //normalVec = (normalMap.xyz * 2.0f) - 1.0f; //TODO: use/mix with normal map from the texture!
-    //normal = lerp(input.normal, normalVec, 0.0f);
+    float3 vRefract = refract(lightDir, normal, kAir2Water);
+    // Calculate the distance along the Refraction ray from the ocean surface
+    // to the interception point on the ocean floor.
+    float distance = (fixedDepth - input.position.y) / vRefract.y;
     
     textureColor = shaderTexture.Sample(SampleType, input.texUV);
-    
-    sunColor = sunTexture.Sample(SampleType, input.texUV);
     
     // Calculate the amount of light on this pixel.
     lightIntensity = saturate(dot(float3(0,1,0), lightDir));
@@ -84,17 +124,24 @@ float4 CausticPixelShader(PixelInputType input) : SV_TARGET
         
         color = saturate(color);
     }
-
+    
+    float3 intercept = line_plane_intercept(input.worldPosition.xyz, float3(normal.x, saturate(input.worldPosition.w), normal.z), float3(0, 1, 0), -0.8);
+    
+    // Calculate the caustics
+    float4 caustics = sunTexture.Sample(SampleType, intercept.xy * 0.4);
+    
     // Calculate the specular component of the light
     reflectDir = reflect(-lightDir, normal);
     specular = pow(max(dot(input.viewDirection, reflectDir), 0.0f), specularPower) * specularColor;
         
+    caustics.a = 1.0f;
     
-    color = color * textureColor * sunColor;
-
+    color = textureColor;
+    color += caustics;
+    
     color = saturate(color);
     
     //color = float4(input.position.xz / 255, 1.0f, 1.0f);    
-    //color = float4(input.normal, 1.0f);    
+    //color = float4(input.normal.xz, 1.0f, 1.0f);    
     return color;
 }

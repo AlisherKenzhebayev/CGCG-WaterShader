@@ -40,10 +40,13 @@ struct VertexInputType
 struct PixelInputType
 {
     float4 position : SV_POSITION;
+    float4 worldPosition : TEXCOORD3;
     float3 normal : NORMAL;
     float2 texUV : TEXCOORD0;
-    float3 viewDirection : TEXCOORD4;
+    float3 viewDirection : TEXCOORD1;
+    float time : TEXCOORD2;
 };
+
 
 float4 CalcQ(float4 Q, float4 freq, float4 ampl)
 {
@@ -96,12 +99,16 @@ PixelInputType CausticVertexShader(VertexInputType input)
     // Vertex displacement
     float4 position = input.position;
     
+    float waterHeight = 200;
+    
     position.x = position.x + calcX;
-    //position.y = position.y + dot(sinValue, waveHeight);
+    //position.y = position.y;//+dot(sinValue, waveHeight);
     position.z = position.z + calcY;
     
     // Calculate the position of the vertex against the world, view, and projection matrices.
-    output.position = mul(position, worldMatrix);
+    output.position = position;
+    output.position = mul(output.position, worldMatrix);
+    output.worldPosition = output.position;
     output.position = mul(output.position, viewMatrix);
     output.position = mul(output.position, projectionMatrix);
     
@@ -133,15 +140,18 @@ PixelInputType CausticVertexShader(VertexInputType input)
     float3 normalCalc = cross(binormal, tangent);
     
     // Switch y and z, because the original calculation is made in XY, while this one is in XZ.
-    output.normal = float3(normalCalc.x, normalCalc.z, normalCalc.y);
+    output.normal = float3(binormal.z, 1.0f, tangent.z);
+    
+    //output.normal = float3(normalCalc.x, normalCalc.z, normalCalc.y);
     output.normal = mul(output.normal, (float3x3) worldMatrix);
-    output.normal = normalize(output.normal);
+    //output.normal = normalize(output.normal);
     output.texUV = input.texUV;
     
     // Calculating view direction from the world position and camera information (for specular)
     worldPosition = mul(input.position, worldMatrix);
     output.viewDirection = cameraPosition.xyz - worldPosition.xyz;
     output.viewDirection = normalize(output.viewDirection);
+    output.time = time.z;
 
     return output;
 }

@@ -692,6 +692,19 @@ bool GraphicsClass::RenderScene()
 	// Reset the world matrix.
 	m_D3D->GetWorldMatrix(worldMatrix);
 
+	m_CausticGround->Render(m_D3D->GetDeviceContext());
+
+	result = m_CausticShader->Render(m_D3D->GetDeviceContext(), m_CausticGround->GetIndexCount(), worldMatrix, viewMatrix,
+		projectionMatrix,
+		m_CausticGround->GetTexture(),
+		m_SunTexture->GetTexture(),
+		m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(),
+		m_Camera->GetPosition(),
+		m_Light->GetSpecularColor(), m_Light->GetSpecularPower());
+	if (!result)
+	{
+		return false;
+	}
 
 #ifdef _DEBUG1
 	ID3D11Resource* res;

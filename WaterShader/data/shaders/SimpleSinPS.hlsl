@@ -128,7 +128,7 @@ float4 SimpleSinPixelShader(PixelInputType input) : SV_TARGET
     specular = pow(max(dot(input.viewDirection, reflectDir), 0.0f), specularPower) * specularColor;
         
     
-    color = color * textureColor * envColor;
+    color = color * envColor;// * textureColor;
 
     color = saturate(color + specular);
     
